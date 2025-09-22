@@ -373,10 +373,10 @@ def local_otsu_block_based(image: np.ndarray,
     if postprocess_params is None:
         postprocess_params = {
             'remove_small': True,
-            'min_size': max(50, (height * width) // 10000),  # 이미지 크기에 비례 / Proportional to image size
-            'apply_opening': True,
-            'apply_closing': True,
-            'kernel_size': 3
+            'min_size': max(5, (height * width) // 50000),  # 텍스트를 위해 더 작은 값 / Smaller value for text
+            'apply_opening': False,  # 텍스트 세부사항 보존 / Preserve text details
+            'apply_closing': False,  # 텍스트 연결성 보존 / Preserve text connectivity
+            'kernel_size': 2  # 더 작은 커널 / Smaller kernel
         }
 
     # 결과 이미지 초기화 / Initialize result image
@@ -519,10 +519,10 @@ def local_otsu_sliding_window(image: np.ndarray,
     if postprocess_params is None:
         postprocess_params = {
             'remove_small': True,
-            'min_size': max(50, (height * width) // 10000),  # 이미지 크기에 비례 / Proportional to image size
-            'apply_opening': True,
-            'apply_closing': True,
-            'kernel_size': 3
+            'min_size': max(5, (height * width) // 50000),  # 텍스트를 위해 더 작은 값 / Smaller value for text
+            'apply_opening': False,  # 텍스트 세부사항 보존 / Preserve text details
+            'apply_closing': False,  # 텍스트 연결성 보존 / Preserve text connectivity
+            'kernel_size': 2  # 더 작은 커널 / Smaller kernel
         }
 
     # 결과 이미지 및 임계값 맵 초기화 / Initialize result image and threshold map
