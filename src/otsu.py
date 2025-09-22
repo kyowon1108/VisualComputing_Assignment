@@ -320,7 +320,8 @@ def local_otsu_block_based(image: np.ndarray,
                           apply_smoothing: bool = True,
                           smoothing_sigma: float = 1.0,
                           apply_postprocessing: bool = True,
-                          postprocess_params: Optional[dict] = None) -> Tuple[np.ndarray, dict]:
+                          postprocess_params: Optional[dict] = None,
+                          improved_boundary: bool = False) -> Tuple[np.ndarray, dict]:
     """
     블록 기반 Local Otsu Thresholding을 수행합니다. (개선된 버전)
     Perform block-based Local Otsu Thresholding (Enhanced version).
@@ -911,3 +912,53 @@ def example_opencv_otsu_usage():
     # Adaptive thresholding (Gaussian-based):
     # thresh_gaussian = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
     #                                         cv2.THRESH_BINARY, 11, 2)
+
+def local_otsu_improved_boundary(image: np.ndarray,
+                               block_size: Tuple[int, int] = (32, 32),
+                               overlap_ratio: float = 0.5,
+                               blend_method: str = 'weighted_average',
+                               show_process: bool = True) -> Tuple[np.ndarray, dict]:
+    """
+    개선된 경계 처리를 사용한 Local Otsu Thresholding
+    Local Otsu Thresholding with improved boundary processing
+
+    이 방법은 겹치는 블록을 사용하여 블록 경계 아티팩트를 크게 감소시킵니다.
+    This method uses overlapping blocks to significantly reduce block boundary artifacts.
+
+    Args:
+        image: 입력 그레이스케일 이미지
+        block_size: 블록 크기
+        overlap_ratio: 겹침 비율 (0.5 = 50% 겹침)
+        blend_method: 블렌딩 방법 ('weighted_average', 'gaussian_blend')
+        show_process: 처리 과정 표시 여부
+
+    Returns:
+        (이진 이미지, 처리 정보)
+    """
+    from .improved_local_otsu import local_otsu_overlapping_blocks
+
+    # 개선된 방법 사용
+    binary_image, process_info = local_otsu_overlapping_blocks(
+        image, block_size, overlap_ratio, blend_method, show_process
+    )
+
+    # 텍스트 친화적 후처리 적용
+    binary_processed = apply_morphological_postprocessing(
+        binary_image,
+        remove_small=True,
+        min_size=6,  # 텍스트 보존을 위한 작은 값
+        apply_opening=False,
+        apply_closing=False,
+        kernel_size=2
+    )
+
+    # 처리 정보 업데이트
+    process_info['postprocessing_applied'] = True
+    process_info['postprocessing_settings'] = {
+        'min_size': 6,
+        'apply_opening': False,
+        'apply_closing': False,
+        'kernel_size': 2
+    }
+
+    return binary_processed, process_info

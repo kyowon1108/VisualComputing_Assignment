@@ -20,15 +20,16 @@ sys.path.insert(0, current_dir)
 
 from src.utils import load_image, save_image
 from src.otsu import (global_otsu_thresholding, local_otsu_block_based,
-                     local_otsu_sliding_window, compare_otsu_methods)
+                     local_otsu_sliding_window, compare_otsu_methods,
+                     local_otsu_improved_boundary)
 import cv2
 
 def main():
     parser = argparse.ArgumentParser(description='Local Otsu Thresholding')
 
     parser.add_argument('image_path', help='입력 이미지 파일 경로 / Input image file path')
-    parser.add_argument('--method', choices=['global', 'block', 'sliding', 'compare'], default='compare',
-                       help='처리 방법 / Processing method: global, block, sliding, compare(모든 방법 비교)')
+    parser.add_argument('--method', choices=['global', 'block', 'sliding', 'improved', 'compare'], default='compare',
+                       help='처리 방법 / Processing method: global, block, sliding, improved(개선된 블록), compare(모든 방법 비교)')
     parser.add_argument('--block-size', type=int, default=32,
                        help='블록/윈도우 크기 (기본값: 32) / Block/Window size (default: 32)')
     parser.add_argument('--stride', type=int, default=16,
@@ -77,6 +78,18 @@ def main():
             )
             threshold_map = info.get('threshold_map', None)
             results = {'sliding': {'result': result, 'threshold_map': threshold_map, 'info': info}}
+
+        elif args.method == 'improved':
+            print(f"Improved Local Otsu 실행 중 (블록: {args.block_size}x{args.block_size}, 겹침 처리)...")
+            result, info = local_otsu_improved_boundary(
+                gray_image,
+                block_size=(args.block_size, args.block_size),
+                overlap_ratio=0.5,
+                blend_method='weighted_average',
+                show_process=True
+            )
+            threshold_map = info.get('threshold_map', None)
+            results = {'improved': {'result': result, 'threshold_map': threshold_map, 'info': info}}
 
         elif args.method == 'compare':
             print("모든 방법 비교 실행 중... / Running comparison of all methods...")
