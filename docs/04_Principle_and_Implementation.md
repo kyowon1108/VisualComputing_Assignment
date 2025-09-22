@@ -297,6 +297,77 @@ def rgb_to_yuv(rgb_image: np.ndarray) -> np.ndarray:
     # V = 0.615*R - 0.51499*G - 0.10001*B
 ```
 
+#### 4. 입력 이미지 처리 전략
+
+```python
+# run_he.py - 컬러 이미지 직접 처리
+def main():
+    image = load_image(args.image_path)  # RGB 컬러 이미지 유지
+    if args.method == 'yuv':
+        result, info = histogram_equalization_color(image, method='yuv')
+    # 컬러 정보를 보존하여 자연스러운 결과
+```
+
+```python
+# run_otsu.py - 그레이스케일 변환 후 처리
+def main():
+    image = load_image(args.image_path)
+    if len(image.shape) == 3:
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 필수 변환
+    result, info = global_otsu_thresholding(gray_image)
+    # 이진화는 본질적으로 흑백 결과
+```
+
+### 처리 방식의 핵심 차이점
+
+#### 히스토그램 평활화 vs Otsu Thresholding
+
+| 특성 | 히스토그램 평활화 | Otsu Thresholding |
+|------|------------------|-------------------|
+| **입력 처리** | RGB 컬러 이미지 직접 처리 | RGB → 그레이스케일 변환 필수 |
+| **색공간 전략** | YUV 변환으로 색상 보존 | 그레이스케일 변환으로 단순화 |
+| **출력 결과** | 개선된 컬러 이미지 | 이진 이미지 (흑백) |
+| **색상 정보** | 보존됨 (U, V 채널 유지) | 손실됨 (이진화 특성상 불필요) |
+
+#### 구현상 고려사항
+
+```python
+# 히스토그램 평활화에서 색상 보존 전략
+def histogram_equalization_color(image, method='yuv'):
+    if method == 'yuv':
+        yuv_image = rgb_to_yuv(image)
+        # Y 채널만 처리, U/V 채널은 보존
+        y_equalized = histogram_equalization_grayscale(yuv_image[:,:,0])
+        yuv_image[:,:,0] = y_equalized
+        return yuv_to_rgb(yuv_image)  # 컬러 복원
+```
+
+```python
+# Otsu에서 그레이스케일 변환이 필수인 이유
+def global_otsu_thresholding(image):
+    if len(image.shape) != 2:
+        raise ValueError("그레이스케일 이미지가 필요합니다")
+    # 이진화 알고리즘은 단일 채널에서만 의미가 있음
+    threshold = calculate_otsu_threshold(histogram)
+    return apply_threshold(image, threshold)  # 0 또는 255 값만 출력
+```
+
+### 실무적 함의
+
+**왜 이런 차이가 중요한가?**
+
+1. **알고리즘의 본질적 특성**
+   - HE: 대비 개선 (컬러 정보 유지 필요)
+   - Otsu: 객체 분할 (형태 정보만 필요)
+
+2. **처리 효율성**
+   - HE: 3채널 → YUV → 1채널 처리 → 3채널 복원
+   - Otsu: 3채널 → 1채널 변환 → 1채널 이진화
+
+3. **사용자 기대와 일치**
+   - HE 사용자: "더 밝고 선명한 컬러 사진"을 기대
+   - Otsu 사용자: "객체와 배경이 분리된 흑백 이미지"를 기대
+
 ### 시각화 기능
 
 모든 주요 함수들은 중간 과정을 시각화하는 기능을 포함:
