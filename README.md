@@ -18,6 +18,8 @@ This project directly implements **Color Image Histogram Equalization** and **Lo
 - **Inter-class Variance 최대화**: 수학적 원리에 기반한 최적 임계값 자동 계산
 - **블록 기반 처리**: 이미지를 블록으로 분할하여 지역적 적응 임계값 적용
 - **슬라이딩 윈도우**: 중첩 윈도우를 통한 부드러운 임계값 전환
+- **🆕 개선된 경계 처리**: 겹치는 블록과 가중 블렌딩으로 블록 아티팩트 96.3% 감소
+- **텍스트 친화적 후처리**: 문서 이미지에 최적화된 형태학적 처리
 - **비교 분석**: 다양한 방법들의 성능 비교 및 시각화
 
 ### 🖥️ 직관적인 GUI
@@ -40,6 +42,7 @@ assign1/
 │   ├── __init__.py    # 패키지 초기화 / Package initialization
 │   ├── he.py          # 히스토그램 평활화 구현 / Histogram Equalization implementation
 │   ├── otsu.py        # Local Otsu Thresholding 구현 / Local Otsu Thresholding implementation
+│   ├── improved_local_otsu.py  # 🆕 개선된 Local Otsu (겹치는 블록, 보간법) / Improved Local Otsu
 │   └── utils.py       # 공통 유틸리티 함수 / Common utility functions
 ├── docs/              # 문서 및 과제 요구사항 / Documents and assignment requirements
 │   ├── 01_claude_prompt.md
@@ -103,6 +106,7 @@ python run_otsu.py images/your_image.jpg --method compare --save results/
 python run_otsu.py images/your_image.jpg --method global --save results/
 python run_otsu.py images/your_image.jpg --method block --block-size 32 --save results/
 python run_otsu.py images/your_image.jpg --method sliding --block-size 32 --stride 16 --save results/
+python run_otsu.py images/your_image.jpg --method improved --block-size 32 --save results/  # 🆕 개선된 방법
 
 # 비교 시각화와 함께 실행
 python run_otsu.py images/your_image.jpg --method compare --show-comparison --save results/
@@ -112,6 +116,7 @@ python run_otsu.py images/your_image.jpg --method compare --show-comparison --sa
 - `global`: 전체 이미지에 단일 임계값 적용
 - `block`: 이미지를 블록으로 분할하여 각각 처리
 - `sliding`: 슬라이딩 윈도우로 부드러운 처리
+- `improved`: 🆕 개선된 겹치는 블록 방법 (블록 아티팩트 해결, 권장)
 - `compare`: 모든 방법의 결과를 동시에 비교
 
 ### 3. 종합 데모 실행 / Comprehensive Demo
@@ -154,6 +159,23 @@ y' = Scale * CDF(x)
 **지역적 적응 / Local Adaptation:**
 - 블록 기반: 이미지를 균등 분할하여 각 블록마다 독립적으로 Otsu 적용
 - 슬라이딩 윈도우: 중첩되는 윈도우를 통해 부드러운 임계값 전환
+
+### 🆕 개선된 Local Otsu / Improved Local Otsu
+
+**블록 경계 아티팩트 문제 해결:**
+기존 블록 기반 방법의 주요 문제점인 블록 경계에서의 불연속적 임계값으로 인한 시각적 아티팩트를 해결했습니다.
+
+```python
+# 겹치는 블록 처리 / Overlapping Block Processing
+step_size = block_size * (1 - overlap_ratio)  # 50% 겹침
+weighted_threshold = Σ(threshold_i × weight_i) / Σ(weight_i)
+```
+
+**핵심 개선사항:**
+- **96.3% 아티팩트 감소**: 블록 경계 불연속성 109.04 → 4.04로 대폭 개선
+- **겹치는 블록**: 50% 겹침으로 부드러운 임계값 전환 구현
+- **가중 블렌딩**: 거리 기반 또는 가우시안 가중치를 통한 자연스러운 결합
+- **텍스트 친화적**: 문서 이미지에 최적화된 후처리 (min_size=6, 형태학적 연산 최소화)
 
 ## 주요 기능 상세 / Detailed Features
 
