@@ -61,19 +61,21 @@ def main():
 
         elif args.method == 'block':
             print(f"Block-based Local Otsu 실행 중 (블록 크기: {args.block_size}x{args.block_size})...")
-            result, threshold_map, info = local_otsu_block_based(
+            result, info = local_otsu_block_based(
                 gray_image, block_size=(args.block_size, args.block_size), show_process=True
             )
+            threshold_map = info.get('threshold_map', None)
             results = {'block': {'result': result, 'threshold_map': threshold_map, 'info': info}}
 
         elif args.method == 'sliding':
             print(f"Sliding Window Local Otsu 실행 중 (윈도우: {args.block_size}x{args.block_size}, 스트라이드: {args.stride})...")
-            result, threshold_map, info = local_otsu_sliding_window(
+            result, info = local_otsu_sliding_window(
                 gray_image,
                 window_size=(args.block_size, args.block_size),
                 stride=args.stride,
                 show_process=True
             )
+            threshold_map = info.get('threshold_map', None)
             results = {'sliding': {'result': result, 'threshold_map': threshold_map, 'info': info}}
 
         elif args.method == 'compare':
