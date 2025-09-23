@@ -7,13 +7,16 @@ Usage:
     python run_he.py <image_path> [options]
 
 Examples:
-    # Global HE (기본)
+    # Global HE with YUV color space (권장)
     python run_he.py images/test.jpg --algorithm he --method yuv --save results/
+
+    # Global HE with RGB channels
+    python run_he.py images/test.jpg --algorithm he --method rgb --save results/
 
     # Adaptive HE
     python run_he.py images/test.jpg --algorithm ahe --tile-size 16 --save results/
 
-    # CLAHE
+    # CLAHE with different parameters
     python run_he.py images/test.jpg --algorithm clahe --clip-limit 3.0 --tile-size 8 --save results/
 """
 
@@ -41,8 +44,6 @@ def main():
                        help='CLAHE 클립 한계 (기본값: 2.0) / CLAHE clip limit (default: 2.0)')
     parser.add_argument('--tile-size', type=int, default=8,
                        help='CLAHE/AHE 타일 크기 (기본값: 8) / CLAHE/AHE tile size (default: 8)')
-    parser.add_argument('--show-process', action='store_true',
-                       help='중간 과정 시각화 표시 / Show intermediate process visualization')
     parser.add_argument('--save', metavar='DIR',
                        help='결과 저장 디렉토리 / Result saving directory')
 
@@ -65,11 +66,11 @@ def main():
 
         # 알고리즘별 실행
         if args.algorithm == 'he':
-            # 기본 히스토그램 평활화
+            # 기본 히스토그램 평활화 (무조건 시각화)
             result, info = histogram_equalization_color(
                 image,
                 method=args.method,
-                show_process=args.show_process
+                show_process=True  # 항상 시각화 표시
             )
 
         elif args.algorithm == 'ahe':
@@ -85,7 +86,7 @@ def main():
                 gray,
                 clip_limit=999.0,  # 매우 높은 값으로 클리핑 비활성화
                 tile_size=(args.tile_size, args.tile_size),
-                show_process=args.show_process
+                show_process=True  # 항상 시각화 표시
             )
 
         elif args.algorithm == 'clahe':
@@ -100,7 +101,7 @@ def main():
                 gray,
                 clip_limit=args.clip_limit,
                 tile_size=(args.tile_size, args.tile_size),
-                show_process=args.show_process
+                show_process=True  # 항상 시각화 표시
             )
 
         # 결과 정보 출력

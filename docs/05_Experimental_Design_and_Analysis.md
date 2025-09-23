@@ -332,9 +332,23 @@ def compare_with_opencv(image: np.ndarray) -> Dict[str, Dict[str, float]]:
         'result_difference': np.mean(np.abs(our_clahe[0] - cv_clahe))
     }
 
+    # AHE 비교 (OpenCV는 내장 AHE 없음, CLAHE로 근사)
+    ahe_comparison = {}
+
+    # Our AHE (clip_limit=999.0으로 클리핑 비활성화)
+    start = time.perf_counter()
+    our_ahe = clahe_implementation(image, clip_limit=999.0, tile_size=(16, 16), show_process=False)
+    our_time = time.perf_counter() - start
+
+    ahe_comparison = {
+        'our_implementation': our_time,
+        'note': 'OpenCV has no direct AHE - CLAHE with high clip_limit used'
+    }
+
     return {
         'histogram_equalization': he_comparison,
-        'clahe': clahe_comparison
+        'clahe': clahe_comparison,
+        'ahe': ahe_comparison
     }
 ```
 

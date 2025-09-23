@@ -83,19 +83,37 @@ python download_images.py
 
 ### 1. 히스토그램 평활화 실행 / Histogram Equalization
 ```bash
-# 기본 실행 (YUV 색공간, 권장)
-python run_he.py images/your_image.jpg --method yuv --save results/
+# Global HE (YUV 색공간, 권장) - 자동 시각화
+python run_he.py images/your_image.jpg --algorithm he --method yuv --save results/
 
-# 중간 과정 시각화와 함께 실행
-python run_he.py images/your_image.jpg --method yuv --show-process --save results/
+# Global HE (RGB 채널별 처리) - 자동 시각화
+python run_he.py images/your_image.jpg --algorithm he --method rgb --save results/
 
-# RGB 채널별 처리
-python run_he.py images/your_image.jpg --method rgb --save results/
+# Adaptive HE (AHE) - 자동 시각화
+python run_he.py images/your_image.jpg --algorithm ahe --tile-size 16 --save results/
+
+# CLAHE (권장) - 자동 시각화
+python run_he.py images/your_image.jpg --algorithm clahe --clip-limit 2.0 --tile-size 8 --save results/
+
+# 그레이스케일 처리
+python run_he.py images/your_image.jpg --algorithm he --method gray --save results/
 ```
 
-**방법 옵션:**
-- `yuv`: YUV 색공간에서 Y(휘도) 채널만 처리 (권장)
+**알고리즘 옵션:**
+- `he`: Global Histogram Equalization (전역 히스토그램 평활화)
+- `ahe`: Adaptive Histogram Equalization (적응적 히스토그램 평활화)
+- `clahe`: Contrast Limited Adaptive Histogram Equalization (대비 제한 적응적 평활화, 권장)
+
+**방법 옵션 (--method):**
+- `yuv`: YUV 색공간에서 Y(휘도) 채널만 처리 (컬러 이미지 권장)
 - `rgb`: RGB 각 채널을 개별적으로 처리
+- `gray`: 그레이스케일로 변환하여 처리
+
+**추가 파라미터:**
+- `--clip-limit`: CLAHE의 클립 한계값 (기본값: 2.0, 범위: 1.0-4.0)
+- `--tile-size`: CLAHE/AHE의 타일 크기 (기본값: 8, 권장: 8-16)
+
+**⚠️ 중요:** 모든 HE 알고리즘은 실행 시 자동으로 히스토그램, 이전/이후 비교, CDF 등의 시각화가 표시됩니다.
 
 ### 2. Local Otsu Thresholding 실행 / Local Otsu Thresholding
 ```bash

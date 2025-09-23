@@ -81,32 +81,82 @@ def histogram_equalization_color(image: np.ndarray, method: str = 'yuv', show_pr
         rgb_equalized = yuv_to_rgb(yuv_equalized)
 ```
 
-### CLAHE (Contrast Limited Adaptive Histogram Equalization)
+### HE, AHE, CLAHE 알고리즘 비교
 
-#### 핵심 원리
+본 구현에서는 세 가지 히스토그램 평활화 알고리즘을 제공합니다:
 
-1. **타일 분할**: 이미지를 작은 타일로 분할
-2. **히스토그램 클리핑**: 과도한 증폭 방지
-3. **로컬 평활화**: 각 타일에서 독립적 처리
-4. **보간**: 타일 경계에서 부드러운 전환
+#### 1. Global HE (전역 히스토그램 평활화)
 
-#### 클리핑 공식
+**원리:**
+- 전체 이미지에 대해 단일 CDF 계산
+- 모든 픽셀에 동일한 변환 함수 적용
 
+**장점:**
+- 간단하고 빠른 계산
+- 전체적인 대비 개선
+
+**단점:**
+- 지역적 특성 무시
+- 과도한 밝기 증가 가능
+
+#### 2. AHE (Adaptive Histogram Equalization)
+
+**원리:**
+- 이미지를 작은 타일로 분할
+- 각 타일마다 독립적으로 HE 적용
+- 클리핑 제한 없음
+
+**장점:**
+- 지역적 대비 개선
+- 세부 사항 강화
+
+**단점:**
+- 노이즈 증폭 가능
+- 과도한 대비로 인한 부자연스러운 결과
+
+#### 3. CLAHE (Contrast Limited Adaptive Histogram Equalization)
+
+**원리:**
+- AHE + 히스토그램 클리핑
+- 과도한 증폭 방지
+- 재분배를 통한 균등한 개선
+
+**클리핑 공식:**
 ```
 클립 임계값 = (총 픽셀 수 / 256) × clip_limit
 ```
 
+**장점:**
+- 노이즈 증폭 방지
+- 자연스러운 대비 개선
+- 가장 균형잡힌 결과 (권장)
+
 #### 본 구현에서의 코드 매핑
 
 ```python
+# run_he.py - 알고리즘 선택
+if args.algorithm == 'he':
+    # Global HE
+    result, info = histogram_equalization_color(image, method=args.method)
+elif args.algorithm == 'ahe':
+    # AHE (clip_limit을 매우 높게 설정)
+    result, info = clahe_implementation(gray, clip_limit=999.0, tile_size=(args.tile_size, args.tile_size))
+elif args.algorithm == 'clahe':
+    # CLAHE (권장)
+    result, info = clahe_implementation(gray, clip_limit=args.clip_limit, tile_size=(args.tile_size, args.tile_size))
+
 # src/he.py의 clahe_implementation 함수 (라인 181-284)
 def clahe_implementation(image: np.ndarray, clip_limit: float = 2.0, tile_size: Tuple[int, int] = (8, 8)):
-    # 히스토그램 클리핑 (라인 245)
+    # 히스토그램 클리핑 (라인 324)
     clipped_hist = clip_histogram(hist, clip_limit, tile_h * tile_w)
-
     # 클리핑된 히스토그램으로 CDF 계산 (라인 248)
     cdf = calculate_cdf(clipped_hist)
 ```
+
+#### 파라미터 가이드
+
+- **clip_limit**: 2.0-4.0 권장 (낮을수록 자연스러움)
+- **tile_size**: 8x8 또는 16x16 권장 (작을수록 세밀함)
 
 ---
 
