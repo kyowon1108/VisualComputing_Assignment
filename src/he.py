@@ -321,9 +321,9 @@ def clip_histogram(histogram: np.ndarray, clip_limit: float, total_pixels: int) 
 
     # 잘린 부분을 균등하게 재분배 / Redistribute clipped parts evenly
     redistribution = excess / 256
-    clipped_hist += redistribution
+    clipped_hist = clipped_hist.astype(np.float64) + redistribution
 
-    return clipped_hist
+    return clipped_hist.astype(np.int64)
 
 def apply_histogram_mapping(image: np.ndarray, cdf: np.ndarray) -> np.ndarray:
     """
