@@ -1,0 +1,110 @@
+[
+  {
+    "method": "Improved_Otsu",
+    "window_size": 51,
+    "stride": 16,
+    "preblur": 0.0,
+    "processing_time": 0.3547689914703369,
+    "overall_metrics": {
+      "mean_brightness": 155.743408203125,
+      "brightness_std": 124.33245711829092,
+      "binary_ratio": 0.6107584635416666
+    },
+    "roi_metrics": [
+      {
+        "roi_id": 1,
+        "mean_brightness": 137.25065104166666,
+        "brightness_std": 127.1266093477823,
+        "edge_strength": 3853345.571977149,
+        "binary_ratio": 0.5382378472222222
+      },
+      {
+        "roi_id": 2,
+        "mean_brightness": 173.9739990234375,
+        "brightness_std": 118.72833450684605,
+        "edge_strength": 11846015.170075312,
+        "binary_ratio": 0.6822509765625
+      },
+      {
+        "roi_id": 3,
+        "mean_brightness": 167.88330078125,
+        "brightness_std": 120.93568132693963,
+        "edge_strength": 9992033.755676083,
+        "binary_ratio": 0.6583658854166666
+      }
+    ],
+    "success": true
+  },
+  {
+    "method": "Improved_Otsu",
+    "window_size": 51,
+    "stride": 24,
+    "preblur": 0.0,
+    "processing_time": 0.07954096794128418,
+    "overall_metrics": {
+      "mean_brightness": 155.572412109375,
+      "brightness_std": 124.37117704018654,
+      "binary_ratio": 0.610087890625
+    },
+    "roi_metrics": [
+      {
+        "roi_id": 1,
+        "mean_brightness": 134.82682291666666,
+        "brightness_std": 127.28930695839226,
+        "edge_strength": 3499420.0677762507,
+        "binary_ratio": 0.5287326388888889
+      },
+      {
+        "roi_id": 2,
+        "mean_brightness": 173.22174072265625,
+        "brightness_std": 119.02005051792827,
+        "edge_strength": 12038693.482589286,
+        "binary_ratio": 0.6793009440104166
+      },
+      {
+        "roi_id": 3,
+        "mean_brightness": 166.80419921875,
+        "brightness_std": 121.2906835819339,
+        "edge_strength": 9980427.48289823,
+        "binary_ratio": 0.6541341145833334
+      }
+    ],
+    "success": true
+  },
+  {
+    "method": "Improved_Otsu",
+    "window_size": 51,
+    "stride": 32,
+    "preblur": 0.0,
+    "processing_time": 0.04667091369628906,
+    "overall_metrics": {
+      "mean_brightness": 157.7513671875,
+      "brightness_std": 123.85921355832619,
+      "binary_ratio": 0.6186328125
+    },
+    "roi_metrics": [
+      {
+        "roi_id": 1,
+        "mean_brightness": 133.06705729166666,
+        "brightness_std": 127.37840426505313,
+        "edge_strength": 3691116.661930659,
+        "binary_ratio": 0.5218315972222223
+      },
+      {
+        "roi_id": 2,
+        "mean_brightness": 176.59912109375,
+        "brightness_std": 117.6670145275271,
+        "edge_strength": 11569445.315983146,
+        "binary_ratio": 0.6925455729166666
+      },
+      {
+        "roi_id": 3,
+        "mean_brightness": 172.39166259765625,
+        "brightness_std": 119.33561341535138,
+        "edge_strength": 9900476.29465698,
+        "binary_ratio": 0.6760457356770834
+      }
+    ],
+    "success": true
+  }
+]

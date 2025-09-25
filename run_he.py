@@ -156,10 +156,10 @@ def create_histogram_plots(result, save_dir):
 def main():
     parser = argparse.ArgumentParser(description='Enhanced Histogram Equalization Tool')
     parser.add_argument('input', help='Input image path')
-    parser.add_argument('--space', choices=['yuv', 'lab', 'rgb', 'ycbcr', 'hsv'],
-                       default='yuv', help='Color space for processing')
-    parser.add_argument('--he-mode', choices=['global', 'ahe', 'clahe'],
-                       default='clahe', help='Histogram equalization mode')
+    parser.add_argument('--he-mode','--algorithm', dest='he_mode',
+                       choices=['he','ahe','clahe'], default='clahe')
+    parser.add_argument('--space','--method', dest='space',
+                       choices=['rgb','yuv','lab','hsv'], default='yuv')
     parser.add_argument('--tile', nargs=2, type=int, default=[8, 8],
                        help='AHE/CLAHE tile grid size (width height)')
     parser.add_argument('--clip', type=float, default=2.5,
@@ -172,6 +172,8 @@ def main():
                        help='ROI coordinates as "x,y,w,h;x,y,w,h;..." format')
     parser.add_argument('--save', type=str, default='results/he/',
                        help='Output directory for saving results')
+    # run_he.py (argparse 일부)
+    
 
     args = parser.parse_args()
 
