@@ -136,6 +136,118 @@ def yuv_to_rgb(yuv_image: np.ndarray) -> np.ndarray:
     """
     return cv2.cvtColor(yuv_image, cv2.COLOR_YUV2RGB)
 
+def rgb_to_ycbcr(rgb_image: np.ndarray) -> np.ndarray:
+    """
+    RGB 이미지를 YCbCr 색공간으로 변환합니다.
+    Convert RGB image to YCbCr color space.
+
+    YCbCr 색공간의 이론적 근거:
+    - Y 채널: 휘도 정보 (인간의 시각 인지와 밀접한 관련)
+    - Cb, Cr 채널: 색차 정보 (색상 정보를 효율적으로 표현)
+    - YUV와 유사하지만 디지털 비디오/이미지 처리에 최적화된 색공간
+
+    Theoretical basis of YCbCr color space:
+    - Y channel: Luminance information (closely related to human visual perception)
+    - Cb, Cr channels: Chrominance information (efficiently represents color information)
+    - Similar to YUV but optimized for digital video/image processing
+
+    Args:
+        rgb_image (np.ndarray): RGB 이미지 / RGB image
+
+    Returns:
+        np.ndarray: YCbCr 이미지 / YCbCr image
+    """
+    return cv2.cvtColor(rgb_image, cv2.COLOR_RGB2YCrCb)
+
+def ycbcr_to_rgb(ycbcr_image: np.ndarray) -> np.ndarray:
+    """
+    YCbCr 이미지를 RGB 색공간으로 변환합니다.
+    Convert YCbCr image to RGB color space.
+
+    Args:
+        ycbcr_image (np.ndarray): YCbCr 이미지 / YCbCr image
+
+    Returns:
+        np.ndarray: RGB 이미지 / RGB image
+    """
+    return cv2.cvtColor(ycbcr_image, cv2.COLOR_YCrCb2RGB)
+
+def rgb_to_lab(rgb_image: np.ndarray) -> np.ndarray:
+    """
+    RGB 이미지를 LAB 색공간으로 변환합니다.
+    Convert RGB image to LAB color space.
+
+    LAB 색공간의 이론적 근거:
+    - L 채널: 명도(Lightness) 정보, 인간의 밝기 인지와 가장 밀접
+    - A 채널: 녹색-적색 축의 색상 정보
+    - B 채널: 파랑-노랑 축의 색상 정보
+    - 색상의 균등한 분포로 CLAHE 적용에 이상적
+
+    Theoretical basis of LAB color space:
+    - L channel: Lightness information, most closely related to human brightness perception
+    - A channel: Green-Red axis color information
+    - B channel: Blue-Yellow axis color information
+    - Ideal for CLAHE application due to uniform color distribution
+
+    Args:
+        rgb_image (np.ndarray): RGB 이미지 / RGB image
+
+    Returns:
+        np.ndarray: LAB 이미지 / LAB image
+    """
+    return cv2.cvtColor(rgb_image, cv2.COLOR_RGB2LAB)
+
+def lab_to_rgb(lab_image: np.ndarray) -> np.ndarray:
+    """
+    LAB 이미지를 RGB 색공간으로 변환합니다.
+    Convert LAB image to RGB color space.
+
+    Args:
+        lab_image (np.ndarray): LAB 이미지 / LAB image
+
+    Returns:
+        np.ndarray: RGB 이미지 / RGB image
+    """
+    return cv2.cvtColor(lab_image, cv2.COLOR_LAB2RGB)
+
+def rgb_to_hsv(rgb_image: np.ndarray) -> np.ndarray:
+    """
+    RGB 이미지를 HSV 색공간으로 변환합니다.
+    Convert RGB image to HSV color space.
+
+    HSV 색공간의 이론적 근거:
+    - H 채널: 색상(Hue) 정보, 색상환에서의 위치
+    - S 채널: 채도(Saturation) 정보, 색상의 순수함 정도
+    - V 채널: 명도(Value/Brightness) 정보, 인간의 밝기 인지와 관련
+    - V 채널만 처리하여 색상과 채도를 보존하면서 밝기 개선
+
+    Theoretical basis of HSV color space:
+    - H channel: Hue information, position on color wheel
+    - S channel: Saturation information, purity of color
+    - V channel: Value/Brightness information, related to human brightness perception
+    - Processing only V channel preserves hue and saturation while improving brightness
+
+    Args:
+        rgb_image (np.ndarray): RGB 이미지 / RGB image
+
+    Returns:
+        np.ndarray: HSV 이미지 / HSV image
+    """
+    return cv2.cvtColor(rgb_image, cv2.COLOR_RGB2HSV)
+
+def hsv_to_rgb(hsv_image: np.ndarray) -> np.ndarray:
+    """
+    HSV 이미지를 RGB 색공간으로 변환합니다.
+    Convert HSV image to RGB color space.
+
+    Args:
+        hsv_image (np.ndarray): HSV 이미지 / HSV image
+
+    Returns:
+        np.ndarray: RGB 이미지 / RGB image
+    """
+    return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
+
 def compute_histogram(image: np.ndarray, bins: int = 256) -> Tuple[np.ndarray, np.ndarray]:
     """
     이미지의 히스토그램을 계산합니다.

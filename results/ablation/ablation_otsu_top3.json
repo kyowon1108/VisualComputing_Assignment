@@ -1,0 +1,20 @@
+[
+  {
+    "window": 75,
+    "stride": 32,
+    "preblur": 1.0,
+    "score": 4.97
+  },
+  {
+    "window": 75,
+    "stride": 32,
+    "preblur": 1.2,
+    "score": 4.94
+  },
+  {
+    "window": 75,
+    "stride": 24,
+    "preblur": 1.0,
+    "score": 4.83
+  }
+]

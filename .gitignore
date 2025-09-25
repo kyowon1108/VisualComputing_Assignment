@@ -74,7 +74,7 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific
-results/
+# results/
 *.log
 *.tmp
 temp/
