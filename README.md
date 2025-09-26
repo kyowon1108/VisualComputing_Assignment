@@ -18,18 +18,19 @@ This project directly implements **Color Image Histogram Equalization** and **Lo
 ## 주요 특징 / Key Features
 
 ### 🎨 컬러 이미지 히스토그램 평활화 / Color Image Histogram Equalization
-- **YUV 색공간 기반 처리**: Y(휘도) 채널만 처리하여 자연스러운 색감 유지
-- **CLAHE 구현**: Contrast Limited Adaptive Histogram Equalization으로 노이즈 방지
+- **YUV/RGB 색공간 지원**: Y(휘도) 채널 또는 RGB 각 채널 처리 선택 가능
+- **🆕 OpenCV 기반 AHE/CLAHE**: 격자 아티팩트 없는 최적화된 적응적 히스토그램 평활화
+- **Global HE 직접 구현**: 이론적 이해를 위한 low-level 구현
 - **단계별 시각화**: CDF 계산, 픽셀 매핑 과정의 중간 단계 시각화
 - **이론적 배경**: CDF 변환의 물리적 의미와 수식 도출 과정 설명
 
 ### 🔍 Local Otsu Thresholding
 - **Inter-class Variance 최대화**: 수학적 원리에 기반한 최적 임계값 자동 계산
-- **블록 기반 처리**: 이미지를 블록으로 분할하여 지역적 적응 임계값 적용
-- **슬라이딩 윈도우**: 중첩 윈도우를 통한 부드러운 임계값 전환
+- **직접 구현 방법들**: Block-based와 Sliding Window 기반 Local Otsu 직접 구현
+- **🆕 OpenCV 적응적 임계값**: 격자 아티팩트 없는 블록/슬라이딩 윈도우 처리
 - **🆕 개선된 경계 처리**: 겹치는 블록과 가중 블렌딩으로 블록 아티팩트 96.3% 감소
 - **텍스트 친화적 후처리**: 문서 이미지에 최적화된 형태학적 처리
-- **비교 분석**: 다양한 방법들의 성능 비교 및 시각화
+- **종합 비교 분석**: 6가지 방법의 성능 비교 및 시각화
 
 ### 🖥️ 직관적인 GUI
 - **실시간 미리보기**: 원본과 처리 결과의 실시간 비교
@@ -98,14 +99,11 @@ python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method yuv -
 # Global HE (RGB 채널별 처리) - 자동 시각화
 python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method rgb --save results/
 
-# Adaptive HE (AHE) - 자동 시각화
-python scripts/cli/run_he.py images/your_image.jpg --algorithm ahe --tile-size 16 --save results/
+# 🆕 Adaptive HE (OpenCV 기반, 격자 아티팩트 없음)
+python scripts/cli/run_he.py images/your_image.jpg --algorithm ahe --method yuv --tile-size 16 --save results/
 
-# CLAHE (권장) - 자동 시각화
-python scripts/cli/run_he.py images/your_image.jpg --algorithm clahe --clip-limit 2.0 --tile-size 8 --save results/
-
-# 그레이스케일 처리
-python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method gray --save results/
+# 🆕 CLAHE (OpenCV 기반, 격자 아티팩트 없음)
+python scripts/cli/run_he.py images/your_image.jpg --algorithm clahe --method yuv --clip-limit 2.0 --tile-size 8 --save results/
 ```
 
 **알고리즘 옵션:**
@@ -116,11 +114,14 @@ python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method gray 
 **방법 옵션 (--method):**
 - `yuv`: YUV 색공간에서 Y(휘도) 채널만 처리 (컬러 이미지 권장)
 - `rgb`: RGB 각 채널을 개별적으로 처리
-- `gray`: 그레이스케일로 변환하여 처리
 
 **추가 파라미터:**
 - `--clip-limit`: CLAHE의 클립 한계값 (기본값: 2.0, 범위: 1.0-4.0)
 - `--tile-size`: CLAHE/AHE의 타일 크기 (기본값: 8, 권장: 8-16)
+
+**🆕 중요 변경사항:**
+- **AHE와 CLAHE는 항상 OpenCV 기반**으로 동작하여 격자 아티팩트가 없습니다
+- **그레이스케일 처리 제거**: 컬러 이미지만 지원합니다
 
 **⚠️ 중요:** 모든 HE 알고리즘은 실행 시 자동으로 히스토그램, 이전/이후 비교, CDF 등의 시각화가 표시됩니다.
 
@@ -131,8 +132,10 @@ python scripts/cli/run_otsu.py images/your_image.jpg --method compare --save res
 
 # 특정 방법만 실행
 python scripts/cli/run_otsu.py images/your_image.jpg --method global --save results/
-python scripts/cli/run_otsu.py images/your_image.jpg --method block --block-size 32 --save results/
-python scripts/cli/run_otsu.py images/your_image.jpg --method sliding --block-size 32 --stride 16 --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method block --block-size 32 --save results/  # 직접 구현 블록 방법
+python scripts/cli/run_otsu.py images/your_image.jpg --method sliding --block-size 32 --stride 8 --save results/  # 직접 구현 슬라이딩 방법
+python scripts/cli/run_otsu.py images/your_image.jpg --method block_opencv --block-size 32 --save results/  # 🆕 OpenCV 블록 기반
+python scripts/cli/run_otsu.py images/your_image.jpg --method sliding_opencv --block-size 32 --save results/  # 🆕 OpenCV 슬라이딩 기반
 python scripts/cli/run_otsu.py images/your_image.jpg --method improved --block-size 32 --save results/  # 🆕 개선된 방법
 
 # 비교 시각화와 함께 실행
@@ -141,10 +144,12 @@ python scripts/cli/run_otsu.py images/your_image.jpg --method compare --show-com
 
 **방법 옵션:**
 - `global`: 전체 이미지에 단일 임계값 적용
-- `block`: 이미지를 블록으로 분할하여 각각 처리
-- `sliding`: 슬라이딩 윈도우로 부드러운 처리
-- `improved`: 🆕 개선된 겹치는 블록 방법 (블록 아티팩트 해결, 권장)
-- `compare`: 모든 방법의 결과를 동시에 비교
+- `block`: 직접 구현한 블록 기반 Local Otsu (격자 아티팩트 있음)
+- `sliding`: 직접 구현한 슬라이딩 윈도우 Local Otsu
+- `block_opencv`: 🆕 **OpenCV 적응적 블록 처리** (격자 아티팩트 없음)
+- `sliding_opencv`: 🆕 **OpenCV 적응적 슬라이딩 윈도우** (격자 아티팩트 없음)
+- `improved`: 🆕 개선된 겹치는 블록 방법 (블록 아티팩트 96.3% 감소)
+- `compare`: 모든 방법의 결과를 동시에 비교 (6가지 방법)
 
 ### 3. 종합 데모 실행 / Comprehensive Demo
 ```bash
@@ -154,6 +159,7 @@ python demo.py
 - images/ 폴더의 모든 이미지에 대해 HE와 Local Otsu 자동 실행
 - 테스트 이미지가 없으면 자동으로 생성
 - 모든 결과를 results/ 폴더에 저장
+- 6가지 Otsu 방법의 종합 비교 결과를 3x3 그리드로 시각화
 
 ## 핵심 구현 내용 / Core Implementation
 
@@ -184,8 +190,10 @@ y' = Scale * CDF(x)
 - **수학적 관계**: `σ²(total) = σ²(within) + σ²(between)`
 
 **지역적 적응 / Local Adaptation:**
-- 블록 기반: 이미지를 균등 분할하여 각 블록마다 독립적으로 Otsu 적용
-- 슬라이딩 윈도우: 중첩되는 윈도우를 통해 부드러운 임계값 전환
+- **직접 구현 블록 기반**: 이미지를 균등 분할하여 각 블록마다 독립적으로 Otsu 적용
+- **직접 구현 슬라이딩 윈도우**: 중첩되는 윈도우를 통해 부드러운 임계값 전환
+- **OpenCV 적응적 방법**: 격자 아티팩트 없는 최적화된 처리
+- **개선된 겹치는 블록**: 96.3% 아티팩트 감소로 가장 우수한 품질
 
 ### 🆕 개선된 Local Otsu / Improved Local Otsu
 
@@ -253,13 +261,19 @@ result, info = histogram_equalization_color(image, method='yuv', show_process=Tr
 ```
 
 ```python
-# Local Otsu 테스트
+# Local Otsu 테스트 - 6가지 방법 종합 비교
 from src.otsu import compare_otsu_methods
 from src.utils import load_image
 import cv2
 
 image = load_image('test_image.jpg', color_mode='gray')
+# 6가지 방법: global, adaptive_block, adaptive_sliding, block_opencv, sliding_opencv, improved
 comparison = compare_otsu_methods(image, show_comparison=True)
+
+# 개별 방법 테스트
+from src.otsu import local_otsu_adaptive_block, local_otsu_adaptive_sliding
+block_result, block_info = local_otsu_adaptive_block(image, block_size=32, show_process=True)
+sliding_result, sliding_info = local_otsu_adaptive_sliding(image, window_size=32, stride=8, show_process=True)
 ```
 
 ## 트러블슈팅 / Troubleshooting
@@ -311,6 +325,7 @@ comparison = compare_otsu_methods(image, show_comparison=True)
 - **멀티스케일 Otsu**: 다양한 스케일에서의 임계값 결합
 - **GPU 가속**: CUDA를 이용한 병렬 처리
 - **배치 처리**: 다수 이미지의 자동 처리
+- **하이브리드 방법**: 직접 구현과 OpenCV 방법의 장점을 결합
 
 ### 연구 확장 방향 / Research Extension Directions
 - **딥러닝 기반 개선**: 신경망을 이용한 적응적 파라미터 학습
