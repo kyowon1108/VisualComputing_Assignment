@@ -74,12 +74,12 @@ def compute_deltaE_map(original_rgb, processed_rgb, chroma_only=False):
 def save_colormap_image(data, output_path, title, cmap='viridis', vmin=None, vmax=None):
     """Save data as colormap image"""
     plt.figure(figsize=(8, 6))
-    plt.imshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    plt.imshow(data, cmap=cmap, vmin=vmin, vmax=vmax, interpolation="nearest")
     plt.colorbar(shrink=0.8)
     plt.title(title)
     plt.axis('off')
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=120, bbox_inches='tight', metadata={"Date": ""})
     plt.close()
 
 def generate_he_metrics(force=False):
@@ -98,7 +98,7 @@ def generate_he_metrics(force=False):
     # Find processed images
     he_patterns = {
         'rgb_he': 'results/he/*rgb*he*.png',
-        'y_he': 'results/he/*y*he*.png',
+        'y_he': 'results/he/result_yuv_he.png',
         'clahe': 'results/he/*clahe*.png'
     }
 

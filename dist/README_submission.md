@@ -1,85 +1,51 @@
-# Visual Computing Assignment - Image Enhancement
+# Visual Computing Assignment 1 - Final Submission
 
-## Overview
-This submission contains implementations and analysis of histogram equalization (HE) and Otsu thresholding methods for image enhancement.
+## Corrected Histogram Equalization Analysis
 
-## Reproduction Instructions
+## Path Changes
 
-### Histogram Equalization
+| Previous Path | New Path |
+|---------------|----------|
+| run_he.py | scripts/cli/run_he.py |
+| run_otsu.py | scripts/cli/run_otsu.py |
+
+
+
+The following metrics show the corrected distinction between Y-HE and CLAHE methods:
+
+| Method | deltaE_mean | SSIM  | Interpretation             |
+|--------|-------------|-------|----------------------------|
+| RGB-HE | 34.72       | 0.265 | High color distortion      |
+| Y-HE   | 34.36       | 0.212 | Better chroma preservation |
+| CLAHE  | 6.61        | 0.605 | Most perceptually similar  |
+
+## Otsu Thresholding Improvements
+
+The Improved Otsu method shows significant improvements over Global Otsu:
+- Components: −91.5% reduction (cleaner segmentation)
+- Average area: ×26.6 increase (larger meaningful regions)
+- Holes: −43.9% reduction (more solid objects)
+
+## Reproduction Commands
+
 ```bash
-# RGB-HE
-python run_he.py images/he_dark_indoor.jpg --space rgb --he-mode global --save results/he/
+# Histogram Equalization
+python scripts/cli/run_he.py images/he_dark_indoor.jpg --he-mode he --space yuv --save results/he/
+python scripts/cli/run_he.py images/he_dark_indoor.jpg --he-mode clahe --space yuv --save results/he/
+python scripts/cli/run_he.py images/he_dark_indoor.jpg --he-mode he --space rgb --save results/he/
 
-# Y-HE (luminance only)
-python run_he.py images/he_dark_indoor.jpg --space yuv --he-mode global --save results/he/
+# Otsu Thresholding
+python scripts/cli/run_otsu.py images/otsu_sample_text.jpg --method global --save results/otsu/
+python scripts/cli/run_otsu.py images/otsu_sample_text.jpg --method improved --save results/otsu/
 
-# CLAHE (recommended)
-python run_he.py images/he_dark_indoor.jpg --space yuv --he-mode clahe --tile 8 8 --clip 2.5 --save results/he/
+# Generate Metrics
+python scripts/make_metrics.py he --force
+python scripts/make_metrics.py otsu --force
 ```
-
-### Otsu Thresholding
-```bash
-# Global Otsu
-python run_otsu.py images/otsu_shadow_doc_02.jpg --method global --save results/otsu/
-
-# Improved Local Otsu (recommended)
-python run_otsu.py images/otsu_shadow_doc_02.jpg --method improved --window 75 --stride 24 --preblur 1.0 --save results/otsu/
-```
-
-### Analysis Scripts
-```bash
-# Parameter ablation study
-python scripts/ablation.py
-
-# Generate summary slides
-python scripts/make_slide_figs.py
-
-# Create final report
-python scripts/make_pdf.py
-```
-
-## Key Artifacts
-
-### Images and Results
-- `images/he_dark_indoor.jpg` - Test image for HE methods
-- `images/otsu_shadow_doc_02.jpg` - Test image for Otsu methods
-- `results/he/` - HE processing results
-- `results/otsu/` - Otsu processing results
-
-### Quality Metrics
-- `results/he_metrics/` - HE quality assessment (SSIM, Delta E, difference maps)
-- `results/otsu_metrics/` - Otsu quality assessment (XOR maps, component analysis)
-
-### Visualizations
-- `results/slides/he_summary.png` - HE methods comparison
-- `results/slides/otsu_summary.png` - Otsu methods comparison
-- `results/video/he_sweep.mp4|gif` - HE parameter sweep animation
-- `results/video/otsu_sweep.mp4|gif` - Otsu parameter sweep animation
-
-### Analysis Data
-- `results/ablation/ablation_he.csv` - HE parameter study results
-- `results/ablation/ablation_otsu.csv` - Otsu parameter study results
-- `results/ablation/*_top3.json` - Best parameter combinations
-
-### Final Report
-- `docs/final_report.pdf` - Complete analysis report with figures
-
-## Key Findings
-
-### Histogram Equalization
-- **CLAHE (YUV space)** provides best balance of enhancement and color preservation
-- **Optimal parameters**: tile=8x8, clip=2.5 for indoor low-light scenes
-- **Y-channel processing** avoids color distortion while improving contrast
-
-### Otsu Thresholding
-- **Local Otsu** significantly outperforms global method for uneven illumination
-- **Improved method** with pre-blur and morphological post-processing reduces noise
-- **Optimal parameters**: window=75, stride=24, preblur=1.0 for document images
 
 ## Dependencies
-- OpenCV >= 4.10
-- NumPy >= 2.0
-- scikit-image >= 0.25
-- matplotlib >= 3.5
-- ReportLab >= 4.0
-- imageio (for video generation)
+- OpenCV 4.x
+- NumPy 1.24+
+- scikit-image 0.21+
+- matplotlib 3.7+
+- ReportLab 4.0+

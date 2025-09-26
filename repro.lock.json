@@ -1,0 +1,40 @@
+{
+  "env": {
+    "python": "3.12.7",
+    "opencv": "4.12.0",
+    "numpy": "2.1.3",
+    "skimage": "0.25.0",
+    "matplotlib": "3.10.0",
+    "reportlab": "4.4.4",
+    "threads": 1,
+    "seed": 42,
+    "omp": 1,
+    "mkl": 1
+  },
+  "he": {
+    "space": "yuv",
+    "mode": "clahe",
+    "clip": 2.5,
+    "tile": [8, 8],
+    "bins": 256
+  },
+  "otsu": {
+    "method": "improved",
+    "window": 75,
+    "stride": 24,
+    "preblur": 1.0,
+    "morph": ["open,3", "close,3"],
+    "th_smooth": null
+  },
+  "viz": {
+    "diff": [0, 255],
+    "ssim": [0, 1],
+    "deltaE": [0, 50],
+    "dpi": 120,
+    "metadata_date": ""
+  },
+  "paths": {
+    "he_src": "images/he_dark_indoor.jpg",
+    "otsu_src": "images/otsu_shadow_doc_02.jpg"
+  }
+}

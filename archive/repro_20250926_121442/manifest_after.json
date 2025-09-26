@@ -1,0 +1,97 @@
+[
+  {
+    "path": "results/he/cdf_overlay.png",
+    "size": 167686,
+    "sha256": "34456fb13ee558a4b4eb679b365d0177d7176ad32e6ce981b0cce2499276f093"
+  },
+  {
+    "path": "results/he/hist_before_after.png",
+    "size": 150473,
+    "sha256": "47bccd99fd1aac4f2456c5bea1f5f0d666c31750b9418effedffac5d156d9cea"
+  },
+  {
+    "path": "results/he/result_yuv_clahe.png",
+    "size": 298903,
+    "sha256": "c5e61470e64f323e5bf5f517a699d0724caa0f96be0817a15818904b26db25af"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_clahe.png",
+    "size": 270581,
+    "sha256": "40e435d4601eca65c0e590115050524edf1564c3be83e49a9afe4398b25a9179"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_y_he.png",
+    "size": 269861,
+    "sha256": "1223e831c07654e28d288723330b764b915c4e2efae27a369366293ece2e2b60"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_clahe.png",
+    "size": 513184,
+    "sha256": "eb351844ff1688a931447b0e0cd8e694ac5f6e4b42a05b08a544c7f04d349d66"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_collage.png",
+    "size": 454683,
+    "sha256": "bcdf7b51aa535be6755bece39480b9cd15ad35f2fb6cb200cea6e16bc9a72773"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_y_he.png",
+    "size": 512600,
+    "sha256": "dbe9c4adc69785016d63761cb349040db0dd53c1d37edbd65ea5fa1bae6366cf"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_clahe.png",
+    "size": 327232,
+    "sha256": "bce1211865d18171e8b07059924bebac9f4c03f37d9659a79ab7529df27d2967"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_collage.png",
+    "size": 309326,
+    "sha256": "c7a19eb497c80bb988b337a9c2298c2d05950f4cf7580d4e9441f5d92e43c33e"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_y_he.png",
+    "size": 326615,
+    "sha256": "be19076265fb3f75fdedc6284871ea73a8feae34151fa9fe045997a4d26de610"
+  },
+  {
+    "path": "results/he_metrics_fixed/he_metrics_stats.csv",
+    "size": 211,
+    "sha256": "e6c59aff5dd4aba009f4a62d8505f2f207f591027843896867f2566783b2128a"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_clahe.png",
+    "size": 208039,
+    "sha256": "7299c68f6c4bdda07747ae2b7889c3573e8dd4d27bb94f39dc44673df740e7ec"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_collage.png",
+    "size": 329057,
+    "sha256": "b962134b50518b635fc705542b62353b39bcfdcc502dd47d23a6f2e0a4759522"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_y_he.png",
+    "size": 207372,
+    "sha256": "41c453295143a99184eec26436bb6477f38591d8c49f3946207b871341fcbc7c"
+  },
+  {
+    "path": "results/otsu/compare_otsu_contact_sheet.png",
+    "size": 2379555,
+    "sha256": "770097e106ad864c003546df5c0e760fe07971454b96e8854d0f2a40f27b9406"
+  },
+  {
+    "path": "results/otsu/local_hist_with_T.png",
+    "size": 179917,
+    "sha256": "a2c9861018d9132fe12985beb8be8930dceec9bc8c0c47d49846b079fd7f9e5b"
+  },
+  {
+    "path": "results/otsu/result_improved.png",
+    "size": 17497,
+    "sha256": "90c0a4803cfd9f245d0af450677a4229af38e3f0ad17e45bbdf785bb85821ba6"
+  },
+  {
+    "path": "results/otsu/threshold_heatmap.png",
+    "size": 209494,
+    "sha256": "a67a867c1b9ba1c754eff1be7064450cbbb8890b5ccb5d3f298344e5dc6b51c1"
+  }
+]

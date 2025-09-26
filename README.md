@@ -2,6 +2,15 @@
 
 ## 프로젝트 개요 / Project Overview
 
+## Path Changes
+
+| Previous Path | New Path |
+|---------------|----------|
+| run_he.py | scripts/cli/run_he.py |
+| run_otsu.py | scripts/cli/run_otsu.py |
+
+
+
 본 프로젝트는 **컬러 이미지 히스토그램 평활화(Histogram Equalization)**와 **Local Otsu Thresholding**을 직접 구현한 비쥬얼컴퓨팅 과제입니다. OpenCV의 내장 함수를 사용하지 않고 low-level 알고리즘을 직접 구현하여 이론적 배경과 수학적 원리를 깊이 이해할 수 있도록 구성되었습니다.
 
 This project directly implements **Color Image Histogram Equalization** and **Local Otsu Thresholding** for a Visual Computing assignment. It implements low-level algorithms without using OpenCV's built-in functions to provide deep understanding of theoretical backgrounds and mathematical principles.
@@ -84,19 +93,19 @@ python download_images.py
 ### 1. 히스토그램 평활화 실행 / Histogram Equalization
 ```bash
 # Global HE (YUV 색공간, 권장) - 자동 시각화
-python run_he.py images/your_image.jpg --algorithm he --method yuv --save results/
+python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method yuv --save results/
 
 # Global HE (RGB 채널별 처리) - 자동 시각화
-python run_he.py images/your_image.jpg --algorithm he --method rgb --save results/
+python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method rgb --save results/
 
 # Adaptive HE (AHE) - 자동 시각화
-python run_he.py images/your_image.jpg --algorithm ahe --tile-size 16 --save results/
+python scripts/cli/run_he.py images/your_image.jpg --algorithm ahe --tile-size 16 --save results/
 
 # CLAHE (권장) - 자동 시각화
-python run_he.py images/your_image.jpg --algorithm clahe --clip-limit 2.0 --tile-size 8 --save results/
+python scripts/cli/run_he.py images/your_image.jpg --algorithm clahe --clip-limit 2.0 --tile-size 8 --save results/
 
 # 그레이스케일 처리
-python run_he.py images/your_image.jpg --algorithm he --method gray --save results/
+python scripts/cli/run_he.py images/your_image.jpg --algorithm he --method gray --save results/
 ```
 
 **알고리즘 옵션:**
@@ -118,16 +127,16 @@ python run_he.py images/your_image.jpg --algorithm he --method gray --save resul
 ### 2. Local Otsu Thresholding 실행 / Local Otsu Thresholding
 ```bash
 # 모든 방법 비교 (기본)
-python run_otsu.py images/your_image.jpg --method compare --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method compare --save results/
 
 # 특정 방법만 실행
-python run_otsu.py images/your_image.jpg --method global --save results/
-python run_otsu.py images/your_image.jpg --method block --block-size 32 --save results/
-python run_otsu.py images/your_image.jpg --method sliding --block-size 32 --stride 16 --save results/
-python run_otsu.py images/your_image.jpg --method improved --block-size 32 --save results/  # 🆕 개선된 방법
+python scripts/cli/run_otsu.py images/your_image.jpg --method global --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method block --block-size 32 --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method sliding --block-size 32 --stride 16 --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method improved --block-size 32 --save results/  # 🆕 개선된 방법
 
 # 비교 시각화와 함께 실행
-python run_otsu.py images/your_image.jpg --method compare --show-comparison --save results/
+python scripts/cli/run_otsu.py images/your_image.jpg --method compare --show-comparison --save results/
 ```
 
 **방법 옵션:**

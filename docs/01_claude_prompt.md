@@ -76,8 +76,8 @@ assign1/
    - 복잡한 GUI 대신 핵심 기능에 집중
 
 2. **명령줄 실행**:
-   - HE: `python run_he.py <image_path> --method yuv --show-process --save results/`
-   - Otsu: `python run_otsu.py <image_path> --method compare --save results/`
+   - HE: `python scripts/cli/run_he.py <image_path> --method yuv --show-process --save results/`
+   - Otsu: `python scripts/cli/run_otsu.py <image_path> --method compare --save results/`
    - 종합 데모: `python demo.py` (모든 기능 자동 테스트)
 
 3. **코드 구조**:
