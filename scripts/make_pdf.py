@@ -32,7 +32,7 @@ def create_pdf_report(output_path, force=False):
 
     # Create document with A4 page size
     doc = SimpleDocTemplate(
-        output_path,
+        str(output_path),
         pagesize=A4,
         rightMargin=72,
         leftMargin=72,
@@ -67,7 +67,7 @@ def create_pdf_report(output_path, force=False):
 
     he_slide = "results/slides/he_summary.png"
     if os.path.exists(he_slide):
-        he_img = Image(he_slide, width=7*inch, height=4.2*inch)
+        he_img = Image(str(he_slide), width=7*inch, height=4.2*inch)
         story.append(he_img)
         story.append(Spacer(1, 0.2*inch))
     else:
@@ -81,7 +81,7 @@ def create_pdf_report(output_path, force=False):
 
     otsu_slide = "results/slides/otsu_summary.png"
     if os.path.exists(otsu_slide):
-        otsu_img = Image(otsu_slide, width=7*inch, height=4.2*inch)
+        otsu_img = Image(str(otsu_slide), width=7*inch, height=4.2*inch)
         story.append(otsu_img)
         story.append(Spacer(1, 0.2*inch))
     else:
@@ -95,7 +95,7 @@ def create_pdf_report(output_path, force=False):
 
     he_metrics = "results/he_metrics/he_metrics_collage.png"
     if os.path.exists(he_metrics):
-        metrics_img = Image(he_metrics, width=7*inch, height=5.6*inch)
+        metrics_img = Image(str(he_metrics), width=7*inch, height=5.6*inch)
         story.append(metrics_img)
         story.append(Spacer(1, 0.2*inch))
     else:
@@ -109,13 +109,13 @@ def create_pdf_report(output_path, force=False):
 
     otsu_table = "results/otsu_metrics/metrics_table.png"
     if os.path.exists(otsu_table):
-        table_img = Image(otsu_table, width=5*inch, height=2*inch)
+        table_img = Image(str(otsu_table), width=5*inch, height=2*inch)
         story.append(table_img)
         story.append(Spacer(1, 0.2*inch))
 
     otsu_xor = "results/otsu_metrics/xor_map.png"
     if os.path.exists(otsu_xor):
-        xor_img = Image(otsu_xor, width=6*inch, height=4*inch)
+        xor_img = Image(str(otsu_xor), width=6*inch, height=4*inch)
         story.append(xor_img)
         story.append(Spacer(1, 0.2*inch))
 

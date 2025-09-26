@@ -10,23 +10,22 @@ import cv2
 import numpy as np
 
 def find_he_results():
-    """Find HE result images"""
+    """Find HE result images with robust fallbacks"""
     results = {}
-    base_path = "results/he"
-    if not os.path.exists(base_path):
-        return results
 
-    patterns = {
-        'original': f'{base_path}/*_original.png',
-        'rgb_he': f'{base_path}/*_rgb_he.png',
-        'y_he': f'{base_path}/*_yuv_he.png',
-        'clahe': f'{base_path}/*_clahe.png'
+    # Explicit mapping with fallbacks (first existing wins)
+    mappings = {
+        'original': ["images/he_dark_indoor.jpg","results/he/original.png","results/he/input.png"],
+        'rgb_he': ["results/he/result_rgb_global.png","results/he/result_rgb_he.png"],
+        'y_he': ["results/he/result_yuv_he.png"],
+        'clahe': ["results/he/result_yuv_clahe.png"]
     }
 
-    for key, pattern in patterns.items():
-        files = glob.glob(pattern)
-        if files:
-            results[key] = files[0]
+    for key, candidates in mappings.items():
+        for path in candidates:
+            if os.path.exists(path):
+                results[key] = path
+                break
 
     return results
 
@@ -52,8 +51,11 @@ def find_otsu_results():
 
 def create_he_summary(he_images, output_path):
     """Create 4-up HE summary: original/rgb_he/y_he/clahe"""
-    if len(he_images) < 4:
-        print(f"Warning: Only {len(he_images)} HE images found, need 4 for complete summary")
+    required_keys = ['original', 'rgb_he', 'y_he', 'clahe']
+    missing_keys = [key for key in required_keys if key not in he_images]
+
+    if missing_keys:
+        print(f"Warning: Missing HE images for keys: {missing_keys}")
         return False
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
@@ -62,7 +64,7 @@ def create_he_summary(he_images, output_path):
 
     for i, (ax, title, key) in enumerate(zip(axes.flat, titles, keys)):
         if key in he_images:
-            img = cv2.imread(he_images[key])
+            img = cv2.imread(str(he_images[key]))
             if img is not None:
                 img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 ax.imshow(img_rgb)
@@ -71,7 +73,7 @@ def create_he_summary(he_images, output_path):
 
     plt.suptitle('Histogram Equalization Methods Comparison')
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(str(output_path), dpi=300, bbox_inches='tight')
     plt.close()
     return True
 
@@ -87,7 +89,7 @@ def create_otsu_summary(otsu_images, output_path):
 
     for ax, title, key in zip(axes, titles, keys):
         if key in otsu_images:
-            img = cv2.imread(otsu_images[key], cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(str(otsu_images[key]), cv2.IMREAD_GRAYSCALE)
             if img is not None:
                 ax.imshow(img, cmap='gray')
         ax.set_title(title)
@@ -95,7 +97,7 @@ def create_otsu_summary(otsu_images, output_path):
 
     plt.suptitle('Otsu Thresholding Methods Comparison')
     plt.tight_layout()
-    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    plt.savefig(str(output_path), dpi=300, bbox_inches='tight')
     plt.close()
     return True
 
