@@ -1,0 +1,1 @@
+{"task": "env_sync", "git": {"branch": "feature/presentation-guide", "commit": "c757dbb", "dirty": true}, "versions": {"python": "3.10.11", "opencv": "", "numpy": "", "skimage": ""}}

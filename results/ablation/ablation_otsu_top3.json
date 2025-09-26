@@ -1,0 +1,20 @@
+[
+  {
+    "method": "improved",
+    "window": 75,
+    "stride": 24,
+    "score": 0.88
+  },
+  {
+    "method": "improved",
+    "window": 60,
+    "stride": 20,
+    "score": 0.82
+  },
+  {
+    "method": "global",
+    "window": "-",
+    "stride": "-",
+    "score": 0.55
+  }
+]

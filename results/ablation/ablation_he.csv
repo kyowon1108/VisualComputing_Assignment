@@ -1,0 +1,4 @@
+space,mode,clip,tile,ssim
+yuv,clahe,2.5,8x8,0.66
+yuv,clahe,3.0,6x6,0.64
+yuv,global,-,-,0.42

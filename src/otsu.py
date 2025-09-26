@@ -1,277 +1,246 @@
 """
-Local Otsu Thresholding 모듈
-Local Otsu Thresholding Module
+Enhanced Otsu Thresholding Module
+개선된 Otsu 임계값 처리 모듈
 
-이 모듈은 Local Otsu Thresholding을 직접 구현합니다.
-This module directly implements Local Otsu Thresholding.
+이 모듈은 다양한 Otsu 임계값 방법을 구현합니다.
+This module implements various Otsu thresholding methods.
 
 주요 기능 / Key Features:
-1. 직접 구현된 Otsu 임계값 계산 / Direct implementation of Otsu threshold calculation
-2. 블록 기반 Local Otsu Thresholding / Block-based Local Otsu Thresholding
-3. 슬라이딩 윈도우 기반 Local Otsu Thresholding / Sliding window-based Local Otsu Thresholding
-4. Inter-class variance 최대화와 within-class variance 최소화의 수학적 관계 설명
-5. 단계별 중간 과정 시각화 / Step-by-step intermediate process visualization
+1. Global Otsu thresholding / 전역 Otsu 임계값
+2. Block-based local Otsu / 블록 기반 지역 Otsu
+3. Sliding window Otsu / 슬라이딩 윈도우 Otsu
+4. Improved method with preprocessing and postprocessing / 전처리 및 후처리가 포함된 개선된 방법
 """
 
 import numpy as np
+import cv2
+from typing import Tuple, Optional, Dict, Any, List
 import matplotlib.pyplot as plt
 from scipy import ndimage
-from scipy.ndimage import gaussian_filter, binary_opening, binary_closing, label
-from .utils import compute_histogram, validate_image_input, display_images
-from typing import Tuple, Optional, Union
+from skimage import morphology, filters
+from .utils import compute_histogram, validate_image_input
 
-def remove_small_objects_custom(labeled_array: np.ndarray, min_size: int = 50) -> np.ndarray:
+def calculate_otsu_threshold(histogram: np.ndarray, show_process: bool = False) -> Tuple[float, dict]:
     """
-    작은 연결 구성 요소를 제거하는 커스텀 함수
-    Custom function to remove small connected components
+    히스토그램으로부터 Otsu 임계값을 계산합니다.
+    Calculate Otsu threshold from histogram with detailed calculation information.
 
     Args:
-        labeled_array (np.ndarray): 라벨링된 배열 / Labeled array
-        min_size (int): 최소 크기 / Minimum size
+        histogram (np.ndarray): 히스토그램 배열 / Histogram array
+        show_process (bool): 계산 과정 표시 여부 / Whether to show calculation process
 
     Returns:
-        np.ndarray: 작은 객체가 제거된 배열 / Array with small objects removed
+        Tuple[float, dict]: (최적 임계값, 계산 정보) / (optimal threshold, calculation info)
     """
-    # 각 라벨의 크기 계산 / Calculate size of each label
-    unique_labels, counts = np.unique(labeled_array, return_counts=True)
+    threshold = compute_otsu_threshold(histogram)
 
-    # 0 라벨 (배경) 제외 / Exclude 0 label (background)
-    mask = unique_labels != 0
-    unique_labels = unique_labels[mask]
-    counts = counts[mask]
-
-    # 크기가 작은 라벨들 찾기 / Find labels that are too small
-    small_labels = unique_labels[counts < min_size]
-
-    # 작은 라벨들을 0으로 설정 / Set small labels to 0
-    result = labeled_array.copy()
-    for label_val in small_labels:
-        result[labeled_array == label_val] = 0
-
-    return result
-
-def calculate_adaptive_parameters(image: np.ndarray) -> Tuple[Tuple[int, int], int]:
-    """
-    이미지 크기에 따라 적응적으로 블록 크기와 스트라이드를 계산합니다.
-    Calculate adaptive block size and stride based on image dimensions.
-
-    Args:
-        image (np.ndarray): 입력 이미지 / Input image
-
-    Returns:
-        Tuple[Tuple[int, int], int]: (블록 크기, 스트라이드) / (block size, stride)
-    """
-    height, width = image.shape
-    min_dim = min(height, width)
-
-    # 이미지 크기에 따른 적응적 블록 크기 계산
-    # Adaptive block size calculation based on image size
-    if min_dim < 128:
-        block_size = (16, 16)
-        stride = 4
-    elif min_dim < 256:
-        block_size = (24, 24)
-        stride = 6
-    elif min_dim < 512:
-        block_size = (32, 32)
-        stride = 8
-    else:
-        block_size = (48, 48)
-        stride = 12
-
-    return block_size, stride
-
-def apply_boundary_smoothing(threshold_map: np.ndarray, sigma: float = 1.0) -> np.ndarray:
-    """
-    블록 경계 아티팩트를 줄이기 위해 임계값 맵에 가우시안 스무딩을 적용합니다.
-    Apply Gaussian smoothing to threshold map to reduce block boundary artifacts.
-
-    Args:
-        threshold_map (np.ndarray): 원본 임계값 맵 / Original threshold map
-        sigma (float): 가우시안 커널의 표준편차 / Standard deviation of Gaussian kernel
-
-    Returns:
-        np.ndarray: 스무딩된 임계값 맵 / Smoothed threshold map
-    """
-    # 0이 아닌 영역에만 스무딩 적용
-    # Apply smoothing only to non-zero regions
-    mask = threshold_map > 0
-    smoothed_map = threshold_map.copy().astype(np.float32)
-
-    if np.any(mask):
-        smoothed_map[mask] = gaussian_filter(threshold_map[mask].astype(np.float32), sigma=sigma)
-
-    return smoothed_map.astype(np.uint8)
-
-def apply_morphological_postprocessing(binary_image: np.ndarray,
-                                     remove_small: bool = True,
-                                     min_size: int = 50,
-                                     apply_opening: bool = True,
-                                     apply_closing: bool = True,
-                                     kernel_size: int = 3) -> np.ndarray:
-    """
-    형태학적 후처리를 적용하여 이진 이미지를 개선합니다.
-    Apply morphological post-processing to improve binary image.
-
-    Args:
-        binary_image (np.ndarray): 입력 이진 이미지 / Input binary image
-        remove_small (bool): 작은 영역 제거 여부 / Whether to remove small regions
-        min_size (int): 제거할 최소 영역 크기 / Minimum size of regions to remove
-        apply_opening (bool): Opening 연산 적용 여부 / Whether to apply opening operation
-        apply_closing (bool): Closing 연산 적용 여부 / Whether to apply closing operation
-        kernel_size (int): 구조 요소 크기 / Structuring element size
-
-    Returns:
-        np.ndarray: 후처리된 이진 이미지 / Post-processed binary image
-    """
-    result = binary_image.copy()
-    kernel = np.ones((kernel_size, kernel_size), np.uint8)
-
-    # 이진 이미지를 불린 배열로 변환
-    # Convert binary image to boolean array
-    binary_bool = result > 127
-
-    # Opening: 노이즈 제거 (작은 흰색 점들 제거)
-    # Opening: Remove noise (small white dots)
-    if apply_opening:
-        binary_bool = binary_opening(binary_bool, structure=kernel)
-
-    # Closing: 구멍 메우기 (작은 검은색 구멍들 메우기)
-    # Closing: Fill holes (small black holes)
-    if apply_closing:
-        binary_bool = binary_closing(binary_bool, structure=kernel)
-
-    # 작은 연결 구성 요소 제거
-    # Remove small connected components
-    if remove_small:
-        # 전경(흰색) 영역의 작은 구성 요소 제거
-        # Remove small components in foreground (white regions)
-        labeled_image = label(binary_bool)[0]
-        cleaned_labeled = remove_small_objects_custom(labeled_image, min_size=min_size)
-        binary_bool = cleaned_labeled > 0
-
-        # 배경(검은색) 영역의 작은 구멍도 제거
-        # Remove small holes in background (black regions)
-        inverted = ~binary_bool
-        labeled_inverted = label(inverted)[0]
-        cleaned_inverted = remove_small_objects_custom(labeled_inverted, min_size=min_size)
-        binary_bool = ~(cleaned_inverted > 0)
-
-    # 불린 배열을 다시 이진 이미지로 변환
-    # Convert boolean array back to binary image
-    result = (binary_bool * 255).astype(np.uint8)
-
-    return result
-
-def calculate_otsu_threshold(histogram: np.ndarray, show_process: bool = False) -> Tuple[int, dict]:
-    """
-    Otsu 방법을 사용하여 최적의 임계값을 계산합니다.
-    Calculate optimal threshold using Otsu's method.
-
-    Otsu 방법의 수학적 원리:
-    1. Inter-class variance (클래스 간 분산) 최대화
-    2. Within-class variance (클래스 내 분산) 최소화
-    3. 수학적 관계: σ²(total) = σ²(within) + σ²(between)
-
-    Mathematical principle of Otsu's method:
-    1. Maximize inter-class variance
-    2. Minimize within-class variance
-    3. Mathematical relationship: σ²(total) = σ²(within) + σ²(between)
-
-    σ²(between) = w₀ * w₁ * (μ₀ - μ₁)²
-    여기서:
-    - w₀, w₁: 각 클래스의 확률 (픽셀 비율)
-    - μ₀, μ₁: 각 클래스의 평균값
-
-    Args:
-        histogram (np.ndarray): 입력 히스토그램 / Input histogram
-        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
-
-    Returns:
-        Tuple[int, dict]: (최적 임계값, 계산 정보) / (optimal threshold, calculation info)
-    """
-    if np.sum(histogram) == 0:
-        return 0, {'message': 'Empty histogram'}
-
-    # 총 픽셀 수 / Total number of pixels
-    total_pixels = np.sum(histogram)
-
-    # 전체 평균 계산 / Calculate overall mean
-    pixel_values = np.arange(256)
-    overall_mean = np.sum(pixel_values * histogram) / total_pixels
-
-    # 각 가능한 임계값에 대해 inter-class variance 계산
-    # Calculate inter-class variance for each possible threshold
-    max_variance = 0
-    optimal_threshold = 0
-    variance_history = []
-
-    for threshold in range(256):
-        # 클래스 0 (0 ~ threshold)
-        w0 = np.sum(histogram[:threshold + 1]) / total_pixels
-        if w0 == 0:
-            variance_history.append(0)
-            continue
-
-        # 클래스 1 (threshold+1 ~ 255)
-        w1 = np.sum(histogram[threshold + 1:]) / total_pixels
-        if w1 == 0:
-            variance_history.append(0)
-            continue
-
-        # 각 클래스의 평균 계산 / Calculate mean of each class
-        if w0 > 0:
-            mean0 = np.sum(pixel_values[:threshold + 1] * histogram[:threshold + 1]) / np.sum(histogram[:threshold + 1])
-        else:
-            mean0 = 0
-
-        if w1 > 0:
-            mean1 = np.sum(pixel_values[threshold + 1:] * histogram[threshold + 1:]) / np.sum(histogram[threshold + 1:])
-        else:
-            mean1 = 0
-
-        # Inter-class variance 계산 / Calculate inter-class variance
-        # σ²(between) = w₀ * w₁ * (μ₀ - μ₁)²
-        inter_class_variance = w0 * w1 * (mean0 - mean1) ** 2
-
-        variance_history.append(inter_class_variance)
-
-        # 최대 inter-class variance를 갖는 임계값 찾기
-        # Find threshold with maximum inter-class variance
-        if inter_class_variance > max_variance:
-            max_variance = inter_class_variance
-            optimal_threshold = threshold
-
-    # 계산 정보 저장 / Store calculation information
-    calculation_info = {
-        'optimal_threshold': optimal_threshold,
-        'max_inter_class_variance': max_variance,
-        'variance_history': variance_history,
-        'total_pixels': total_pixels,
-        'overall_mean': overall_mean
+    # 계산 정보 생성
+    calc_info = {
+        'optimal_threshold': threshold,
+        'max_inter_class_variance': 0.0,
+        'variance_history': np.zeros(256)
     }
 
-    # 중간 과정 시각화 / Visualize intermediate process
-    if show_process:
-        visualize_otsu_calculation(histogram, calculation_info)
+    # Inter-class variance 히스토리 계산 (시각화용)
+    total_pixels = np.sum(histogram)
+    if total_pixels > 0:
+        total_mean = np.sum(np.arange(256) * histogram) / total_pixels
+        w0 = 0.0
+        sum0 = 0.0
 
-    return optimal_threshold, calculation_info
+        for t in range(256):
+            w0 += histogram[t] / total_pixels
+            if w0 == 0 or w0 == 1:
+                continue
 
-def apply_threshold(image: np.ndarray, threshold: int, max_value: int = 255) -> np.ndarray:
+            w1 = 1.0 - w0
+            sum0 += t * histogram[t] / total_pixels
+
+            mean0 = sum0 / w0 if w0 > 0 else 0
+            mean1 = (total_mean - sum0) / w1 if w1 > 0 else 0
+
+            between_variance = w0 * w1 * (mean0 - mean1) ** 2
+            calc_info['variance_history'][t] = between_variance
+
+            if between_variance > calc_info['max_inter_class_variance']:
+                calc_info['max_inter_class_variance'] = between_variance
+
+    return threshold, calc_info
+
+def apply_threshold(image: np.ndarray, threshold: float, max_value: int = 255) -> np.ndarray:
     """
     임계값을 적용하여 이진 이미지를 생성합니다.
     Apply threshold to create binary image.
 
     Args:
         image (np.ndarray): 입력 이미지 / Input image
-        threshold (int): 임계값 / Threshold value
-        max_value (int): 최대값 (일반적으로 255) / Maximum value (typically 255)
+        threshold (float): 임계값 / Threshold value
+        max_value (int): 최대값 / Maximum value
 
     Returns:
         np.ndarray: 이진 이미지 / Binary image
     """
-    binary_image = np.where(image > threshold, max_value, 0).astype(np.uint8)
-    return binary_image
+    return np.where(image > threshold, max_value, 0).astype(np.uint8)
+
+def calculate_adaptive_parameters(image: np.ndarray) -> Tuple[Tuple[int, int], int]:
+    """
+    이미지 크기에 따른 적응적 파라미터를 계산합니다.
+    Calculate adaptive parameters based on image size.
+
+    Args:
+        image (np.ndarray): 입력 이미지 / Input image
+
+    Returns:
+        Tuple[Tuple[int, int], int]: (블록/윈도우 크기, 스트라이드) / (block/window size, stride)
+    """
+    height, width = image.shape
+    image_size = height * width
+
+    # 이미지 크기에 따른 적응적 블록 크기 계산
+    if image_size < 50000:  # 작은 이미지
+        block_size = (16, 16)
+        stride = 4
+    elif image_size < 200000:  # 중간 이미지
+        block_size = (32, 32)
+        stride = 8
+    else:  # 큰 이미지
+        block_size = (64, 64)
+        stride = 16
+
+    return block_size, stride
+
+def apply_boundary_smoothing(threshold_map: np.ndarray, sigma: float = 1.0) -> np.ndarray:
+    """
+    임계값 맵에 경계 스무딩을 적용합니다.
+    Apply boundary smoothing to threshold map.
+
+    Args:
+        threshold_map (np.ndarray): 임계값 맵 / Threshold map
+        sigma (float): 가우시안 시그마 / Gaussian sigma
+
+    Returns:
+        np.ndarray: 스무딩된 임계값 맵 / Smoothed threshold map
+    """
+    return cv2.GaussianBlur(threshold_map.astype(np.float32), (0, 0), sigma)
+
+def apply_morphological_postprocessing(binary_image: np.ndarray,
+                                     remove_small: bool = True,
+                                     min_size: int = 10,
+                                     apply_opening: bool = False,
+                                     apply_closing: bool = False,
+                                     kernel_size: int = 3) -> np.ndarray:
+    """
+    형태학적 후처리를 적용합니다.
+    Apply morphological post-processing.
+
+    Args:
+        binary_image (np.ndarray): 이진 이미지 / Binary image
+        remove_small (bool): 작은 객체 제거 여부 / Whether to remove small objects
+        min_size (int): 최소 객체 크기 / Minimum object size
+        apply_opening (bool): 열림 연산 적용 여부 / Whether to apply opening
+        apply_closing (bool): 닫힘 연산 적용 여부 / Whether to apply closing
+        kernel_size (int): 커널 크기 / Kernel size
+
+    Returns:
+        np.ndarray: 후처리된 이진 이미지 / Post-processed binary image
+    """
+    result = binary_image.copy()
+
+    # 작은 객체 제거
+    if remove_small and min_size > 0:
+        # 연결된 컴포넌트 분석
+        num_labels, labels = cv2.connectedComponents(result)
+        for label in range(1, num_labels):
+            if np.sum(labels == label) < min_size:
+                result[labels == label] = 0
+
+    # 형태학적 연산
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+
+    if apply_opening:
+        result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+
+    if apply_closing:
+        result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel)
+
+    return result
+
+def compute_otsu_threshold(histogram: np.ndarray) -> float:
+    """
+    히스토그램으로부터 Otsu 임계값을 계산합니다.
+    Compute Otsu threshold from histogram.
+
+    Args:
+        histogram: 히스토그램 배열
+
+    Returns:
+        최적 임계값
+    """
+    total_pixels = np.sum(histogram)
+    if total_pixels == 0:
+        return 127.0
+
+    # 가중 평균 계산
+    total_mean = np.sum(np.arange(256) * histogram) / total_pixels
+
+    max_variance = 0.0
+    optimal_threshold = 0
+
+    w0 = 0.0  # 배경 픽셀 비율
+    sum0 = 0.0  # 배경 픽셀 가중 합
+
+    for t in range(256):
+        w0 += histogram[t] / total_pixels
+        if w0 == 0:
+            continue
+
+        w1 = 1.0 - w0  # 전경 픽셀 비율
+        if w1 == 0:
+            break
+
+        sum0 += t * histogram[t] / total_pixels
+
+        mean0 = sum0 / w0  # 배경 평균
+        mean1 = (total_mean - sum0) / w1  # 전경 평균
+
+        # 클래스 간 분산 계산
+        between_variance = w0 * w1 * (mean0 - mean1) ** 2
+
+        if between_variance > max_variance:
+            max_variance = between_variance
+            optimal_threshold = t
+
+    return float(optimal_threshold)
+
+def global_otsu(image: np.ndarray) -> Dict[str, Any]:
+    """
+    전역 Otsu 임계값을 적용합니다.
+    Apply global Otsu thresholding.
+
+    Args:
+        image: 입력 그레이스케일 이미지
+
+    Returns:
+        결과 딕셔너리 (result, threshold, histogram 등)
+    """
+    if len(image.shape) != 2:
+        raise ValueError("입력 이미지는 그레이스케일이어야 합니다")
+
+    # 히스토그램 계산
+    histogram, _ = np.histogram(image.flatten(), bins=256, range=[0, 256])
+
+    # Otsu 임계값 계산
+    threshold = compute_otsu_threshold(histogram)
+
+    # 이진화 적용
+    result = (image > threshold).astype(np.uint8) * 255
+
+    return {
+        'result': result,
+        'threshold': threshold,
+        'histogram': histogram,
+        'method': 'global_otsu'
+    }
 
 def global_otsu_thresholding(image: np.ndarray, show_process: bool = True) -> Tuple[np.ndarray, dict]:
     """
@@ -310,6 +279,120 @@ def global_otsu_thresholding(image: np.ndarray, show_process: bool = True) -> Tu
     # 중간 과정 시각화 / Visualize intermediate process
     if show_process:
         visualize_global_otsu_process(image, binary_image, process_info)
+
+    return binary_image, process_info
+
+def local_otsu_block_opencv(image: np.ndarray,
+                           block_size: int = 32,
+                           show_process: bool = True) -> Tuple[np.ndarray, dict]:
+    """
+    OpenCV 적응적 임계값을 사용한 블록 기반 처리 (격자 아티팩트 없음)
+    Block-based processing using OpenCV adaptive thresholding (no grid artifacts)
+
+    OpenCV의 ADAPTIVE_THRESH_MEAN과 ADAPTIVE_THRESH_GAUSSIAN을 사용하여
+    블록 경계의 아티팩트 없이 지역적 임계값을 적용합니다.
+
+    Uses OpenCV's ADAPTIVE_THRESH_MEAN and ADAPTIVE_THRESH_GAUSSIAN to apply
+    local thresholding without block boundary artifacts.
+
+    Args:
+        image (np.ndarray): 입력 그레이스케일 이미지 / Input grayscale image
+        block_size (int): 적응적 임계값 블록 크기 / Adaptive threshold block size
+        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
+
+    Returns:
+        Tuple[np.ndarray, dict]: (이진 이미지, 처리 정보) / (binary image, processing info)
+    """
+    validate_image_input(image)
+
+    if len(image.shape) != 2:
+        raise ValueError("그레이스케일 이미지가 필요합니다 / Grayscale image required")
+
+    # OpenCV는 홀수 블록 크기만 허용 / OpenCV only allows odd block sizes
+    if block_size % 2 == 0:
+        block_size += 1
+
+    # OpenCV 적응적 임계값 처리 (가우시안 가중 평균)
+    # OpenCV adaptive thresholding with Gaussian weighted mean
+    binary_image = cv2.adaptiveThreshold(
+        image,
+        255,                                    # 최대값 / Maximum value
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,        # 가우시안 가중 평균 / Gaussian weighted mean
+        cv2.THRESH_BINARY,                     # 이진화 타입 / Binary type
+        block_size,                            # 블록 크기 / Block size
+        2                                      # 상수 C / Constant C
+    )
+
+    # 처리 정보 저장 / Store processing information
+    process_info = {
+        'method': 'opencv_adaptive_block',
+        'block_size': block_size,
+        'adaptive_method': 'ADAPTIVE_THRESH_GAUSSIAN_C',
+        'threshold_type': 'THRESH_BINARY',
+        'constant_c': 2,
+        'grid_artifacts': 'None (OpenCV interpolation)'
+    }
+
+    # 중간 과정 시각화 / Visualize intermediate process
+    if show_process:
+        visualize_opencv_adaptive_process(image, binary_image, process_info, "Block-based")
+
+    return binary_image, process_info
+
+def local_otsu_sliding_opencv(image: np.ndarray,
+                             block_size: int = 32,
+                             show_process: bool = True) -> Tuple[np.ndarray, dict]:
+    """
+    OpenCV 적응적 임계값을 사용한 슬라이딩 윈도우 기반 처리 (격자 아티팩트 없음)
+    Sliding window-based processing using OpenCV adaptive thresholding (no grid artifacts)
+
+    OpenCV의 적응적 임계값 처리는 내부적으로 슬라이딩 윈도우와 유사한 방식으로
+    각 픽셀 주변의 지역적 정보를 사용하여 임계값을 결정합니다.
+
+    OpenCV's adaptive thresholding internally uses a sliding window-like approach
+    to determine threshold values using local information around each pixel.
+
+    Args:
+        image (np.ndarray): 입력 그레이스케일 이미지 / Input grayscale image
+        block_size (int): 적응적 임계값 윈도우 크기 / Adaptive threshold window size
+        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
+
+    Returns:
+        Tuple[np.ndarray, dict]: (이진 이미지, 처리 정보) / (binary image, processing info)
+    """
+    validate_image_input(image)
+
+    if len(image.shape) != 2:
+        raise ValueError("그레이스케일 이미지가 필요합니다 / Grayscale image required")
+
+    # OpenCV는 홀수 블록 크기만 허용 / OpenCV only allows odd block sizes
+    if block_size % 2 == 0:
+        block_size += 1
+
+    # OpenCV 적응적 임계값 처리 (평균 기반)
+    # OpenCV adaptive thresholding with mean-based approach
+    binary_image = cv2.adaptiveThreshold(
+        image,
+        255,                                    # 최대값 / Maximum value
+        cv2.ADAPTIVE_THRESH_MEAN_C,            # 평균 기반 / Mean-based
+        cv2.THRESH_BINARY,                     # 이진화 타입 / Binary type
+        block_size,                            # 윈도우 크기 / Window size
+        5                                      # 상수 C / Constant C
+    )
+
+    # 처리 정보 저장 / Store processing information
+    process_info = {
+        'method': 'opencv_adaptive_sliding',
+        'window_size': block_size,
+        'adaptive_method': 'ADAPTIVE_THRESH_MEAN_C',
+        'threshold_type': 'THRESH_BINARY',
+        'constant_c': 5,
+        'grid_artifacts': 'None (OpenCV sliding window)'
+    }
+
+    # 중간 과정 시각화 / Visualize intermediate process
+    if show_process:
+        visualize_opencv_adaptive_process(image, binary_image, process_info, "Sliding window-based")
 
     return binary_image, process_info
 
@@ -615,6 +698,56 @@ def local_otsu_sliding_window(image: np.ndarray,
 
     return binary_image, process_info
 
+def local_otsu_adaptive_block(image: np.ndarray,
+                             block_size: int = 32,
+                             show_process: bool = True) -> Tuple[np.ndarray, dict]:
+    """
+    직접 구현한 적응적 블록 기반 Local Otsu Thresholding
+    Direct implementation of adaptive block-based Local Otsu Thresholding
+
+    Args:
+        image (np.ndarray): 입력 그레이스케일 이미지 / Input grayscale image
+        block_size (int): 블록 크기 / Block size
+        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
+
+    Returns:
+        Tuple[np.ndarray, dict]: (이진 이미지, 처리 정보) / (binary image, processing info)
+    """
+    return local_otsu_block_based(
+        image,
+        block_size=(block_size, block_size),
+        show_process=show_process,
+        adaptive_params=False,
+        apply_smoothing=False,
+        apply_postprocessing=False
+    )
+
+def local_otsu_adaptive_sliding(image: np.ndarray,
+                               window_size: int = 32,
+                               stride: int = 8,
+                               show_process: bool = True) -> Tuple[np.ndarray, dict]:
+    """
+    직접 구현한 적응적 슬라이딩 윈도우 기반 Local Otsu Thresholding
+    Direct implementation of adaptive sliding window-based Local Otsu Thresholding
+
+    Args:
+        image (np.ndarray): 입력 그레이스케일 이미지 / Input grayscale image
+        window_size (int): 윈도우 크기 / Window size
+        stride (int): 스트라이드 / Stride
+        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
+
+    Returns:
+        Tuple[np.ndarray, dict]: (이진 이미지, 처리 정보) / (binary image, processing info)
+    """
+    return local_otsu_sliding_window(
+        image,
+        window_size=(window_size, window_size),
+        stride=stride,
+        show_process=show_process,
+        adaptive_params=False,
+        apply_postprocessing=False
+    )
+
 def compare_otsu_methods(image: np.ndarray, show_comparison: bool = True) -> dict:
     """
     다양한 Otsu 방법들을 비교합니다.
@@ -631,25 +764,50 @@ def compare_otsu_methods(image: np.ndarray, show_comparison: bool = True) -> dic
 
     # 각 방법 적용 / Apply each method
     global_result, global_info = global_otsu_thresholding(image, show_process=False)
-    block_result, block_info = local_otsu_block_based(image, adaptive_params=True, show_process=False)
-    sliding_result, sliding_info = local_otsu_sliding_window(image, adaptive_params=True, show_process=False)
+
+    # 직접 구현한 방법들 / Direct implementations
+    block_result, block_info = local_otsu_adaptive_block(image, block_size=32, show_process=False)
+    sliding_result, sliding_info = local_otsu_adaptive_sliding(image, window_size=32, stride=8, show_process=False)
+
+    # OpenCV 기반 방법들 / OpenCV-based methods
+    block_opencv_result, block_opencv_info = local_otsu_block_opencv(image, block_size=32, show_process=False)
+    sliding_opencv_result, sliding_opencv_info = local_otsu_sliding_opencv(image, block_size=32, show_process=False)
+
+    # 개선된 방법 / Improved method
+    improved_result, improved_info = local_otsu_improved_boundary(image, block_size=(32, 32), show_process=False)
 
     # 비교 정보 생성 / Generate comparison information
     comparison_info = {
         'global_otsu': {
             'result': global_result,
             'info': global_info,
-            'threshold': global_info['threshold']
+            'threshold': global_info['threshold'],
+            'method': 'Global Otsu'
         },
-        'block_based': {
+        'adaptive_block': {
             'result': block_result,
             'info': block_info,
-            'avg_threshold': np.mean(block_info['threshold_map'])
+            'method': 'Direct Block-based'
         },
-        'sliding_window': {
+        'adaptive_sliding': {
             'result': sliding_result,
             'info': sliding_info,
-            'avg_threshold': np.mean(sliding_info['threshold_map'])
+            'method': 'Direct Sliding Window'
+        },
+        'block_opencv': {
+            'result': block_opencv_result,
+            'info': block_opencv_info,
+            'method': 'OpenCV Adaptive Block'
+        },
+        'sliding_opencv': {
+            'result': sliding_opencv_result,
+            'info': sliding_opencv_info,
+            'method': 'OpenCV Adaptive Sliding'
+        },
+        'improved': {
+            'result': improved_result,
+            'info': improved_info,
+            'method': 'Improved Boundary'
         }
     }
 
@@ -821,7 +979,8 @@ def visualize_local_otsu_process(original: np.ndarray, binary: np.ndarray, proce
     plt.tight_layout()
     plt.show()
 
-def visualize_otsu_comparison(original: np.ndarray, comparison_info: dict) -> None:
+def visualize_otsu_comparison(original: np.ndarray, comparison_info: dict,
+                             save_figure: bool = False, save_path: str = None) -> None:
     """
     Otsu 방법들의 비교를 시각화합니다.
     Visualize comparison of Otsu methods.
@@ -829,8 +988,10 @@ def visualize_otsu_comparison(original: np.ndarray, comparison_info: dict) -> No
     Args:
         original (np.ndarray): 원본 이미지 / Original image
         comparison_info (dict): 비교 정보 / Comparison information
+        save_figure (bool): figure를 저장할지 여부 / Whether to save figure
+        save_path (str): 저장할 파일 경로 / File path to save
     """
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    fig, axes = plt.subplots(3, 3, figsize=(18, 18))
 
     # 원본 이미지 / Original image
     axes[0, 0].imshow(original, cmap='gray')
@@ -838,59 +999,44 @@ def visualize_otsu_comparison(original: np.ndarray, comparison_info: dict) -> No
     axes[0, 0].axis('off')
 
     # 각 방법의 결과 / Results of each method
-    methods = ['global_otsu', 'block_based', 'sliding_window']
-    titles = ['Global Otsu', 'Block-based Local Otsu', 'Sliding Window Local Otsu']
+    methods = ['global_otsu', 'adaptive_block', 'adaptive_sliding',
+               'block_opencv', 'sliding_opencv', 'improved']
+    titles = ['Global Otsu', 'Direct Block', 'Direct Sliding',
+              'OpenCV Block', 'OpenCV Sliding', 'Improved Boundary']
 
     for i, (method, title) in enumerate(zip(methods, titles)):
-        result = comparison_info[method]['result']
-        axes[0, i + 1].imshow(result, cmap='gray')
+        if i < 6:  # 6개 방법 표시
+            row = (i + 1) // 3
+            col = (i + 1) % 3
 
-        if method == 'global_otsu':
-            threshold_info = f"임계값: {comparison_info[method]['threshold']}"
-        else:
-            threshold_info = f"평균 임계값: {comparison_info[method]['avg_threshold']:.1f}"
+            result = comparison_info[method]['result']
+            axes[row, col].imshow(result, cmap='gray')
 
-        axes[0, i + 1].set_title(f'{title}\n{threshold_info}')
-        axes[0, i + 1].axis('off')
+            if method == 'global_otsu':
+                threshold_info = f"임계값: {comparison_info[method]['threshold']}"
+            else:
+                threshold_info = comparison_info[method].get('method', method)
 
-    # 임계값 맵 비교 (Local 방법들만) / Threshold map comparison (Local methods only)
-    axes[1, 0].text(0.1, 0.5, "비교 분석:\n\n• Global Otsu: 단일 임계값\n  - 계산 빠름\n  - 불균등 조명에 취약\n\n• Block-based: 블록별 임계값\n  - 지역적 적응\n  - 블록 경계 불연속\n\n• Sliding Window: 중첩 윈도우\n  - 부드러운 전환\n  - 계산 비용 높음",
-                  transform=axes[1, 0].transAxes, fontsize=10,
-                  verticalalignment='center', bbox=dict(boxstyle="round,pad=0.3", facecolor="lightyellow"))
-    axes[1, 0].set_title('방법 비교\nMethod Comparison')
-    axes[1, 0].axis('off')
+            axes[row, col].set_title(f'{title}\n{threshold_info}')
+            axes[row, col].axis('off')
 
-    # Block-based 임계값 맵 / Block-based threshold map
-    if 'threshold_map' in comparison_info['block_based']['info']:
-        threshold_map = comparison_info['block_based']['info']['threshold_map']
-        im1 = axes[1, 1].imshow(threshold_map, cmap='jet')
-        axes[1, 1].set_title('Block-based 임계값 맵')
-        axes[1, 1].axis('off')
-        plt.colorbar(im1, ax=axes[1, 1], fraction=0.046, pad=0.04)
+    # 임계값 맵들 표시 / Show threshold maps
+    threshold_map_methods = ['adaptive_block', 'adaptive_sliding', 'improved']
+    threshold_map_titles = ['Direct Block 임계값 맵', 'Direct Sliding 임계값 맵', 'Improved 임계값 맵']
 
-    # Sliding window 임계값 맵 / Sliding window threshold map
-    if 'threshold_map' in comparison_info['sliding_window']['info']:
-        threshold_map = comparison_info['sliding_window']['info']['threshold_map']
-        im2 = axes[1, 2].imshow(threshold_map, cmap='jet')
-        axes[1, 2].set_title('Sliding Window 임계값 맵')
-        axes[1, 2].axis('off')
-        plt.colorbar(im2, ax=axes[1, 2], fraction=0.046, pad=0.04)
-
-    # 임계값 분포 비교 / Threshold distribution comparison
-    for i, method in enumerate(['block_based', 'sliding_window']):
-        if 'threshold_map' in comparison_info[method]['info']:
+    for i, (method, title) in enumerate(zip(threshold_map_methods, threshold_map_titles)):
+        row, col = 2, i
+        if method in comparison_info and 'threshold_map' in comparison_info[method]['info']:
             threshold_map = comparison_info[method]['info']['threshold_map']
-            threshold_values = threshold_map.flatten()
-            threshold_values = threshold_values[threshold_values > 0]
-            axes[1, 3].hist(threshold_values, bins=30, alpha=0.5,
-                           label=method.replace('_', ' ').title(), density=True)
-
-    axes[1, 3].axvline(x=comparison_info['global_otsu']['threshold'],
-                      color='red', linestyle='--', linewidth=2, label='Global Otsu')
-    axes[1, 3].set_title('임계값 분포 비교\nThreshold Distribution Comparison')
-    axes[1, 3].set_xlabel('임계값 / Threshold Value')
-    axes[1, 3].set_ylabel('밀도 / Density')
-    axes[1, 3].legend()
+            im = axes[row, col].imshow(threshold_map, cmap='jet')
+            axes[row, col].set_title(title)
+            axes[row, col].axis('off')
+            plt.colorbar(im, ax=axes[row, col], fraction=0.046, pad=0.04)
+        else:
+            axes[row, col].text(0.5, 0.5, f'{method}\n임계값 맵 없음',
+                               transform=axes[row, col].transAxes, ha='center', va='center')
+            axes[row, col].set_title(title)
+            axes[row, col].axis('off')
 
     plt.tight_layout()
     plt.show()
@@ -926,39 +1072,435 @@ def local_otsu_improved_boundary(image: np.ndarray,
     This method uses overlapping blocks to significantly reduce block boundary artifacts.
 
     Args:
-        image: 입력 그레이스케일 이미지
-        block_size: 블록 크기
-        overlap_ratio: 겹침 비율 (0.5 = 50% 겹침)
-        blend_method: 블렌딩 방법 ('weighted_average', 'gaussian_blend')
-        show_process: 처리 과정 표시 여부
+        image (np.ndarray): 입력 그레이스케일 이미지 / Input grayscale image
+        block_size (Tuple[int, int]): 블록 크기 / Block size
+        overlap_ratio (float): 겹침 비율 / Overlap ratio
+        blend_method (str): 블렌딩 방법 / Blending method
+        show_process (bool): 중간 과정 표시 여부 / Whether to show intermediate process
 
     Returns:
-        (이진 이미지, 처리 정보)
+        Tuple[np.ndarray, dict]: (이진 이미지, 처리 정보) / (binary image, processing info)
     """
-    from .improved_local_otsu import local_otsu_overlapping_blocks
+    validate_image_input(image)
 
-    # 개선된 방법 사용
-    binary_image, process_info = local_otsu_overlapping_blocks(
-        image, block_size, overlap_ratio, blend_method, show_process
-    )
+    if len(image.shape) != 2:
+        raise ValueError("그레이스케일 이미지가 필요합니다 / Grayscale image required")
 
-    # 텍스트 친화적 후처리 적용
-    binary_processed = apply_morphological_postprocessing(
-        binary_image,
-        remove_small=True,
-        min_size=6,  # 텍스트 보존을 위한 작은 값
-        apply_opening=False,
-        apply_closing=False,
-        kernel_size=2
-    )
+    height, width = image.shape
+    block_h, block_w = block_size
 
-    # 처리 정보 업데이트
-    process_info['postprocessing_applied'] = True
-    process_info['postprocessing_settings'] = {
-        'min_size': 6,
-        'apply_opening': False,
-        'apply_closing': False,
-        'kernel_size': 2
+    # 겹침 계산 / Calculate overlap
+    overlap_h = int(block_h * overlap_ratio)
+    overlap_w = int(block_w * overlap_ratio)
+    stride_h = block_h - overlap_h
+    stride_w = block_w - overlap_w
+
+    # 결과 이미지와 가중치 맵 초기화 / Initialize result image and weight map
+    binary_image = np.zeros_like(image, dtype=np.float32)
+    weight_map = np.zeros_like(image, dtype=np.float32)
+    threshold_map = np.zeros_like(image, dtype=np.float32)
+
+    # 블록 처리 / Process blocks
+    block_info = []
+    for i in range(0, height - block_h + 1, stride_h):
+        for j in range(0, width - block_w + 1, stride_w):
+            # 현재 블록 추출 / Extract current block
+            end_i = min(i + block_h, height)
+            end_j = min(j + block_w, width)
+            block = image[i:end_i, j:end_j]
+
+            # 블록 히스토그램 계산 / Calculate block histogram
+            block_hist, _ = compute_histogram(block)
+
+            # 블록 임계값 계산 / Calculate block threshold
+            if np.sum(block_hist) > 0:
+                block_threshold, block_calc_info = calculate_otsu_threshold(block_hist, show_process=False)
+            else:
+                block_threshold = 127
+                block_calc_info = {'message': 'Empty block'}
+
+            # 블록 이진화 / Binarize block
+            block_binary = apply_threshold(block, block_threshold)
+
+            # 가중치를 이용한 블렌딩 / Weighted blending
+            binary_image[i:end_i, j:end_j] += block_binary.astype(np.float32)
+            weight_map[i:end_i, j:end_j] += 1.0
+            threshold_map[i:end_i, j:end_j] += block_threshold
+
+            # 블록 정보 저장 (일부만) / Store block information (partial)
+            if len(block_info) < 9:
+                block_info.append({
+                    'position': (i, j),
+                    'size': (end_i - i, end_j - j),
+                    'threshold': block_threshold,
+                    'histogram': block_hist,
+                    'calc_info': block_calc_info
+                })
+
+    # 가중 평균으로 최종 결과 계산 / Calculate final result with weighted average
+    binary_image = np.divide(binary_image, weight_map, out=np.zeros_like(binary_image), where=(weight_map != 0))
+    threshold_map = np.divide(threshold_map, weight_map, out=np.full_like(threshold_map, 127.0), where=(weight_map != 0))
+
+    # 이진화 / Binarization
+    binary_image = (binary_image > 127.5).astype(np.uint8) * 255
+
+    # 처리 정보 저장 / Store processing information
+    process_info = {
+        'method': 'local_otsu_improved_boundary',
+        'block_size': block_size,
+        'overlap_ratio': overlap_ratio,
+        'blend_method': blend_method,
+        'threshold_map': threshold_map,
+        'block_info': block_info,
+        'num_blocks': len(block_info)
     }
 
-    return binary_processed, process_info
+    # 중간 과정 시각화 / Visualize intermediate process
+    if show_process:
+        visualize_local_otsu_process(image, binary_image, process_info)
+
+    return binary_image, process_info
+
+def block_based_otsu(image: np.ndarray, window_size: int = 75, stride: int = 24) -> Dict[str, Any]:
+    """
+    블록 기반 지역 Otsu를 적용합니다.
+    Apply block-based local Otsu thresholding.
+
+    Args:
+        image: 입력 그레이스케일 이미지
+        window_size: 블록 크기
+        stride: 스트라이드 (겹침 제어)
+
+    Returns:
+        결과 딕셔너리
+    """
+    h, w = image.shape
+    threshold_map = np.zeros_like(image, dtype=np.float32)
+    weight_map = np.zeros_like(image, dtype=np.float32)
+
+    # 블록별 임계값 계산
+    thresholds = []
+    positions = []
+
+    for y in range(0, h - window_size + 1, stride):
+        for x in range(0, w - window_size + 1, stride):
+            # 블록 추출
+            block = image[y:y+window_size, x:x+window_size]
+
+            # 블록의 히스토그램 계산
+            block_hist, _ = np.histogram(block.flatten(), bins=256, range=[0, 256])
+
+            # 블록별 Otsu 임계값
+            block_threshold = compute_otsu_threshold(block_hist)
+
+            thresholds.append(block_threshold)
+            positions.append((x + window_size//2, y + window_size//2))
+
+            # 가중치를 이용한 임계값 할당
+            y_end = min(y + window_size, h)
+            x_end = min(x + window_size, w)
+
+            threshold_map[y:y_end, x:x_end] += block_threshold
+            weight_map[y:y_end, x:x_end] += 1.0
+
+    # 가중 평균으로 최종 임계값 맵 생성
+    threshold_map = np.divide(threshold_map, weight_map,
+                             out=np.full_like(threshold_map, 127.0),
+                             where=(weight_map != 0))
+
+    # 이진화 적용
+    result = (image > threshold_map).astype(np.uint8) * 255
+
+    return {
+        'result': result,
+        'threshold_map': threshold_map,
+        'thresholds': thresholds,
+        'positions': positions,
+        'method': 'block_based'
+    }
+
+def sliding_window_otsu(image: np.ndarray, window_size: int = 75, stride: int = 24) -> Dict[str, Any]:
+    """
+    슬라이딩 윈도우 Otsu를 적용합니다.
+    Apply sliding window Otsu thresholding.
+
+    Args:
+        image: 입력 그레이스케일 이미지
+        window_size: 윈도우 크기
+        stride: 스트라이드
+
+    Returns:
+        결과 딕셔너리
+    """
+    h, w = image.shape
+
+    # 그리드 생성
+    y_coords = np.arange(window_size//2, h - window_size//2, stride)
+    x_coords = np.arange(window_size//2, w - window_size//2, stride)
+
+    # 임계값 그리드 계산
+    threshold_grid = np.zeros((len(y_coords), len(x_coords)))
+
+    for i, y in enumerate(y_coords):
+        for j, x in enumerate(x_coords):
+            # 윈도우 추출
+            y_start = max(0, y - window_size//2)
+            y_end = min(h, y + window_size//2)
+            x_start = max(0, x - window_size//2)
+            x_end = min(w, x + window_size//2)
+
+            window = image[y_start:y_end, x_start:x_end]
+
+            # 윈도우의 히스토그램과 임계값 계산
+            window_hist, _ = np.histogram(window.flatten(), bins=256, range=[0, 256])
+            window_threshold = compute_otsu_threshold(window_hist)
+
+            threshold_grid[i, j] = window_threshold
+
+    # 양선형 보간으로 전체 이미지에 임계값 할당
+    from scipy import interpolate
+
+    # 보간 함수 생성
+    f = interpolate.RectBivariateSpline(y_coords, x_coords, threshold_grid)
+
+    # 모든 픽셀에 대한 임계값 계산
+    y_full = np.arange(h)
+    x_full = np.arange(w)
+    threshold_map = f(y_full, x_full)
+
+    # 이진화 적용
+    result = (image > threshold_map).astype(np.uint8) * 255
+
+    return {
+        'result': result,
+        'threshold_map': threshold_map,
+        'threshold_grid': threshold_grid,
+        'grid_coords': (y_coords, x_coords),
+        'method': 'sliding_window'
+    }
+
+def apply_preprocessing(image: np.ndarray, preblur: float = 1.0) -> np.ndarray:
+    """전처리를 적용합니다 (가우시안 블러)."""
+    if preblur > 0:
+        return cv2.GaussianBlur(image, (0, 0), preblur)
+    return image.copy()
+
+def apply_morphological_operations(binary_image: np.ndarray, operations: List[str]) -> np.ndarray:
+    """형태학적 연산을 적용합니다."""
+    result = binary_image.copy()
+
+    for op in operations:
+        if ',' in op:
+            op_name, kernel_size = op.split(',')
+            kernel_size = int(kernel_size)
+        else:
+            op_name = op
+            kernel_size = 3
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+
+        if op_name.lower() == 'open':
+            result = cv2.morphologyEx(result, cv2.MORPH_OPEN, kernel)
+        elif op_name.lower() == 'close':
+            result = cv2.morphologyEx(result, cv2.MORPH_CLOSE, kernel)
+        elif op_name.lower() == 'dilate':
+            result = cv2.dilate(result, kernel)
+        elif op_name.lower() == 'erode':
+            result = cv2.erode(result, kernel)
+
+    return result
+
+def improved_otsu(image: np.ndarray,
+                 window_size: int = 75,
+                 stride: int = 24,
+                 preblur: float = 1.0,
+                 morph_ops: List[str] = ['open,3', 'close,3']) -> Dict[str, Any]:
+    """
+    개선된 Otsu 방법을 적용합니다.
+    Apply improved Otsu method with preprocessing and postprocessing.
+
+    Args:
+        image: 입력 그레이스케일 이미지
+        window_size: 윈도우 크기
+        stride: 스트라이드
+        preblur: 전처리 가우시안 시그마
+        morph_ops: 후처리 형태학적 연산 리스트
+
+    Returns:
+        결과 딕셔너리
+    """
+    # 전처리
+    preprocessed = apply_preprocessing(image, preblur)
+
+    # 슬라이딩 윈도우 Otsu 적용
+    otsu_result = sliding_window_otsu(preprocessed, window_size, stride)
+
+    # 후처리 (형태학적 연산)
+    postprocessed = apply_morphological_operations(otsu_result['result'], morph_ops)
+
+    return {
+        'result': postprocessed,
+        'preprocessed': preprocessed,
+        'before_postprocess': otsu_result['result'],
+        'threshold_map': otsu_result['threshold_map'],
+        'threshold_grid': otsu_result['threshold_grid'],
+        'grid_coords': otsu_result['grid_coords'],
+        'method': 'improved',
+        'parameters': {
+            'window_size': window_size,
+            'stride': stride,
+            'preblur': preblur,
+            'morph_ops': morph_ops
+        }
+    }
+
+def create_threshold_heatmap(threshold_map: np.ndarray, save_path: str, title: str = "Threshold Heatmap"):
+    """임계값 히트맵을 생성하고 저장합니다."""
+    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
+
+    im = ax.imshow(threshold_map, cmap='viridis', interpolation='nearest')
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.axis('off')
+
+    # 컬러바 추가
+    cbar = plt.colorbar(im, ax=ax, shrink=0.8)
+    cbar.set_label('Threshold Value', rotation=270, labelpad=20)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+    print(f"Threshold heatmap saved: {save_path}")
+
+def create_local_histogram_with_threshold(image: np.ndarray, roi: Tuple[int, int, int, int],
+                                        threshold: float, save_path: str):
+    """선택 ROI의 히스토그램과 임계값을 시각화합니다."""
+    x, y, w, h = roi
+    roi_image = image[y:y+h, x:x+w]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # ROI 이미지 표시
+    ax1.imshow(roi_image, cmap='gray')
+    ax1.set_title(f'Selected ROI ({x},{y},{w},{h})', fontweight='bold')
+    ax1.axis('off')
+
+    # ROI 히스토그램과 임계값
+    hist, bins = np.histogram(roi_image.flatten(), bins=256, range=[0, 256])
+    ax2.bar(range(256), hist, alpha=0.7, color='gray', edgecolor='black')
+    ax2.axvline(x=threshold, color='red', linestyle='--', linewidth=3, label=f'Threshold: {threshold:.1f}')
+    ax2.set_title('ROI Histogram with Selected Threshold', fontweight='bold')
+    ax2.set_xlabel('Pixel Value')
+    ax2.set_ylabel('Frequency')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    plt.close()
+
+    print(f"Local histogram with threshold saved: {save_path}")
+
+def create_otsu_comparison_contact_sheet(original_img: np.ndarray, results: Dict[str, Any],
+                                       rois: List[Tuple[int, int, int, int]], save_path: str, dpi=300):
+    """Otsu 방법들의 비교 콘택트 시트를 생성합니다."""
+    methods = ['Original', 'Global', 'Improved']
+    n_methods = len(methods)
+    n_rois = len(rois)
+
+    # 그리드 크기 결정: 풀샷 1행 + ROI별 1행씩
+    fig_height = 4 * (1 + n_rois)
+    fig_width = 4 * n_methods
+
+    fig, axes = plt.subplots(1 + n_rois, n_methods, figsize=(fig_width, fig_height), dpi=dpi)
+
+    if n_methods == 1:
+        axes = axes.reshape(-1, 1)
+    if axes.ndim == 1:
+        axes = axes.reshape(1, -1)
+
+    # 첫 번째 행: 풀샷 비교
+    method_results = {
+        'Original': original_img,
+        'Global': results.get('global_otsu', {}).get('result', original_img),
+        'Improved': results.get('improved', {}).get('result', original_img)
+    }
+
+    for col, method_name in enumerate(methods):
+        result_img = method_results[method_name]
+
+        axes[0, col].imshow(result_img, cmap='gray')
+        axes[0, col].set_title(f"{method_name}", fontsize=12, fontweight='bold')
+        axes[0, col].axis('off')
+
+        # 원본에만 ROI 박스 표시
+        if col == 0:
+            for i, (x, y, w, h) in enumerate(rois):
+                rect = plt.Rectangle((x, y), w, h, linewidth=3, edgecolor='red', facecolor='none')
+                axes[0, col].add_patch(rect)
+                axes[0, col].text(x, y-5, f'ROI{i+1}', color='red', fontweight='bold', fontsize=10)
+
+    # ROI별 확대 비교
+    for roi_idx, (x, y, w, h) in enumerate(rois):
+        row = roi_idx + 1
+
+        for col, method_name in enumerate(methods):
+            result_img = method_results[method_name]
+            roi_img = result_img[y:y+h, x:x+w]
+
+            # 200% 확대
+            roi_img_resized = cv2.resize(roi_img, None, fx=2.0, fy=2.0, interpolation=cv2.INTER_NEAREST)
+
+            axes[row, col].imshow(roi_img_resized, cmap='gray')
+            axes[row, col].set_title(f"{method_name} ROI{roi_idx+1}", fontsize=10)
+            axes[row, col].axis('off')
+
+    plt.suptitle('Otsu Methods Comparison with ROI Analysis', fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
+    plt.close()
+
+    print(f"Otsu comparison contact sheet saved: {save_path}")
+
+
+def visualize_opencv_adaptive_process(original: np.ndarray, binary: np.ndarray, process_info: dict, method_name: str) -> None:
+    """
+    OpenCV 적응적 임계값 처리 과정을 시각화합니다.
+    Visualize OpenCV adaptive thresholding process.
+
+    Args:
+        original (np.ndarray): 원본 이미지 / Original image
+        binary (np.ndarray): 이진화된 이미지 / Binary image
+        process_info (dict): 처리 정보 / Processing information
+        method_name (str): 방법 이름 / Method name
+    """
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+    # 원본 이미지 / Original image
+    axes[0].imshow(original, cmap='gray')
+    axes[0].set_title('Original Image')
+    axes[0].axis('off')
+
+    # 이진화 결과 / Binary result
+    axes[1].imshow(binary, cmap='gray')
+    axes[1].set_title(f'OpenCV Adaptive Threshold\n({method_name})')
+    axes[1].axis('off')
+
+    # 처리 정보 표시 / Display processing information
+    info_text = f"OpenCV 적응적 임계값 / OpenCV Adaptive Threshold\n\n"
+    info_text += f"방법 / Method: {process_info['adaptive_method']}\n"
+    info_text += f"블록/윈도우 크기 / Block/Window Size: {process_info.get('block_size', process_info.get('window_size'))}\n"
+    info_text += f"상수 C / Constant C: {process_info.get('constant_c')}\n"
+    info_text += f"격자 아티팩트 / Grid Artifacts: {process_info['grid_artifacts']}\n\n"
+    info_text += f"장점 / Advantages:\n"
+    info_text += f"- 격자 경계 아티팩트 없음 / No grid boundary artifacts\n"
+    info_text += f"- 최적화된 성능 / Optimized performance\n"
+    info_text += f"- 부드러운 경계 처리 / Smooth boundary handling"
+
+    axes[2].text(0.1, 0.5, info_text, transform=axes[2].transAxes, fontsize=10,
+                verticalalignment='center', bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue"))
+    axes[2].set_title('OpenCV 처리 정보 / OpenCV Processing Info')
+    axes[2].axis('off')
+
+    plt.tight_layout()
+    plt.show()

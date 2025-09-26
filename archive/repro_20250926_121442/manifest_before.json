@@ -1,0 +1,257 @@
+[
+  {
+    "path": "docs/final_report.pdf",
+    "size": 8798878,
+    "sha256": "1ecf290906a163f893714836c6d4f94b288b45c6bd10d06d1203046c9a4b532f"
+  },
+  {
+    "path": "results/he/cdf_overlay.png",
+    "size": 167686,
+    "sha256": "34456fb13ee558a4b4eb679b365d0177d7176ad32e6ce981b0cce2499276f093"
+  },
+  {
+    "path": "results/he/compare_he_contact_sheet.png",
+    "size": 3123592,
+    "sha256": "affbe151dad8553db9291ecc246d2f19843583861da7586de212a04395e872b5"
+  },
+  {
+    "path": "results/he/hist_after_clahe.png",
+    "size": 29032,
+    "sha256": "de17542d83567ebbbe4e53ef88ccbbe0d6aec6fb73e7d9bf3f59cbafc9ff1ab8"
+  },
+  {
+    "path": "results/he/hist_after_rgb_he.png",
+    "size": 25260,
+    "sha256": "98e9d965187e990b28c17b354d79fdc5e1aa252dfe490dba35e7aa2f2750386c"
+  },
+  {
+    "path": "results/he/hist_after_y_he.png",
+    "size": 26305,
+    "sha256": "cea0d35cb0d67409cfa3dc077edbfd768950aef5fc68c43fd97ef1851101335c"
+  },
+  {
+    "path": "results/he/hist_before.png",
+    "size": 25298,
+    "sha256": "9ab2aa8065e1cae3b415cf72dc43e3bbba48b30af2c4df232806733091a22d48"
+  },
+  {
+    "path": "results/he/hist_before_after.png",
+    "size": 150473,
+    "sha256": "47bccd99fd1aac4f2456c5bea1f5f0d666c31750b9418effedffac5d156d9cea"
+  },
+  {
+    "path": "results/he/result_rgb_global.png",
+    "size": 285910,
+    "sha256": "6432934f607abc0a4df263270672ff3b6e0bf913a494ecb9d6d3a350470eee40"
+  },
+  {
+    "path": "results/he/result_yuv_clahe.png",
+    "size": 298903,
+    "sha256": "c5e61470e64f323e5bf5f517a699d0724caa0f96be0817a15818904b26db25af"
+  },
+  {
+    "path": "results/he/result_yuv_global.png",
+    "size": 271068,
+    "sha256": "c48a3551da14f524432db622de692f7f92ed67b4842841f563c64638a1a95881"
+  },
+  {
+    "path": "results/he_metrics/deltaE_clahe.png",
+    "size": 284166,
+    "sha256": "5c1874f9d11708aa4ca6db167bde60c08c36dbcd1193b16f5a33fc550ba22a6d"
+  },
+  {
+    "path": "results/he_metrics/deltaE_rgb_he.png",
+    "size": 100248,
+    "sha256": "c568610defbf29151fc8f48f08eb85167bb89341290ebbe0d62c4b011d41a870"
+  },
+  {
+    "path": "results/he_metrics/deltaE_y_he.png",
+    "size": 284021,
+    "sha256": "96abf8b1737ff892c3d226127214f75a5c1f370ece438ae73142b2e8f0991a32"
+  },
+  {
+    "path": "results/he_metrics/diff_clahe.png",
+    "size": 193330,
+    "sha256": "69d7c4ae9a0977adddbeb04eb5e8a5085b58cca2fbad321d761032138240e680"
+  },
+  {
+    "path": "results/he_metrics/diff_rgb_he.png",
+    "size": 306615,
+    "sha256": "1fcd3b633820e3e73a8bfda44ba353ab3730761d8fc710c6f261725118266a6c"
+  },
+  {
+    "path": "results/he_metrics/diff_y_he.png",
+    "size": 193186,
+    "sha256": "986feb5e92d37b9472eb4df96c81456f2c862b944f76c75c7c198844b8b51f1e"
+  },
+  {
+    "path": "results/he_metrics/he_metrics_collage.png",
+    "size": 2145137,
+    "sha256": "2f2ee268b23059931f1ac5a424d7b0084a7307265e24e6f666c4910f9563a5a2"
+  },
+  {
+    "path": "results/he_metrics/he_metrics_stats.csv",
+    "size": 191,
+    "sha256": "aadafd9863438b43131555c35684ffc1a0a2eaa25af470cf27c34e8e8ee7c6aa"
+  },
+  {
+    "path": "results/he_metrics/ssim_clahe.png",
+    "size": 289466,
+    "sha256": "cc96051fff396777eea894e975f2d798dedda117246f540f461eff968c078afa"
+  },
+  {
+    "path": "results/he_metrics/ssim_rgb_he.png",
+    "size": 167667,
+    "sha256": "fc207fedd01ebf59ec934f556bf81fa821145e026af0c5482e8e23d135547b91"
+  },
+  {
+    "path": "results/he_metrics/ssim_y_he.png",
+    "size": 289116,
+    "sha256": "676c0ab0b648ab531f6f25197167dd08d5a25b36bfdd0e1ce9603d00d2f543ac"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_clahe.png",
+    "size": 229508,
+    "sha256": "d0e1401288ee91428822f316558a64abd1d4593ebfbf445c68fc638f7e13a66f"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_collage.png",
+    "size": 571947,
+    "sha256": "aa2e07eeda9b607da65a7f3b6bbe5625beb430a6bde6aea9e61f689f271c4111"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_rgb_he.png",
+    "size": 234145,
+    "sha256": "efa8ecdc8fb6f0cf9302ef2ee0acedc9a3efd091aa8810474d24526d41ae51ba"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_chroma_y_he.png",
+    "size": 233208,
+    "sha256": "fe2176d909c27584a80a49c7802ea7b471295fc7c1dad6fe83a0a617f02bbb2f"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_clahe.png",
+    "size": 303339,
+    "sha256": "2ec94f87af44f1e90b6bcd8dd5a86551534d8af10732b97f763cc4c7ed5728d7"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_collage.png",
+    "size": 760211,
+    "sha256": "97a76cb4f6eec7752c9b6241651452cf7af08090e912100b7e30692f9db8941d"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_rgb_he.png",
+    "size": 268172,
+    "sha256": "c4ed3f5e4c4870bdfb750e64a1dc597b6f81c26ea61fee07ae177acb6a30eaff"
+  },
+  {
+    "path": "results/he_metrics_fixed/deltaE_y_he.png",
+    "size": 268526,
+    "sha256": "5ddfcb03f8f7358595a2aae0516a5e6eb7b506ac9d94ec9fb2b539c100e97d06"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_clahe.png",
+    "size": 201598,
+    "sha256": "704e16454b51ead157bffecd152c36a57b706d480d241749a0e71f1e00359c74"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_collage.png",
+    "size": 558777,
+    "sha256": "6b6d44efbb1bda46e7b8a1370636bb40ccb9a23d71d4e3c6f89ed45cb093dd13"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_rgb_he.png",
+    "size": 228559,
+    "sha256": "06d84d8548a6106d055750403b950ef57edbf9cccf73826aba4a25754906a83d"
+  },
+  {
+    "path": "results/he_metrics_fixed/diff_y_he.png",
+    "size": 217584,
+    "sha256": "3c6cd74a8b77d2defda4a4d1529f700bc732c3ee179c52012ad0935f898fec13"
+  },
+  {
+    "path": "results/he_metrics_fixed/he_metrics_stats.csv",
+    "size": 289,
+    "sha256": "f07a38b5a9f6325df063fa0f1b05cd3f851cb517f05bbc29ca342afff1cdb7e8"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_clahe.png",
+    "size": 299317,
+    "sha256": "22bdf9050603b1c879086674fdeee10b4171ca37f597a3b6e7337bd3714f6ad3"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_collage.png",
+    "size": 650502,
+    "sha256": "f7b340347cff934fb3216efdcf19c6dc81b1a55f9ff866a6876027de977c89f7"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_rgb_he.png",
+    "size": 256320,
+    "sha256": "52eb01e195bef43ee501fbcc5b82cd6030d1cc20a738c277092bfa9cf1dc6641"
+  },
+  {
+    "path": "results/he_metrics_fixed/ssim_y_he.png",
+    "size": 253490,
+    "sha256": "54e8127b7a0e7ed1b6c2099ede9458c190f111f64963ca540687b0be92382a9a"
+  },
+  {
+    "path": "results/otsu/compare_otsu_contact_sheet.png",
+    "size": 2378098,
+    "sha256": "60db63dc11e88853019140ca1e9923cc73c32c67cc2beb256072e74267dcd8df"
+  },
+  {
+    "path": "results/otsu/local_hist_with_T.png",
+    "size": 176771,
+    "sha256": "b1539b84c6e59a5d3ab0ff68ca0ff87f5543277a7737edbca228fe8ac6a3a688"
+  },
+  {
+    "path": "results/otsu/result_global.png",
+    "size": 11415,
+    "sha256": "70457ec4ca7ac60834ae28edf9202daad81ce525ad57fe0c80c2995671afbf99"
+  },
+  {
+    "path": "results/otsu/result_improved.png",
+    "size": 17341,
+    "sha256": "a31b4e3c19f02a194290471556b1ef504321f1044c98c796b7276f87b6be56d3"
+  },
+  {
+    "path": "results/otsu/result_sliding.png",
+    "size": 23545,
+    "sha256": "6a685ce5498d6314c98aa1098c5a00586d5e9f182440f3b44c15edf77330d2ae"
+  },
+  {
+    "path": "results/otsu/threshold_heatmap.png",
+    "size": 208422,
+    "sha256": "9547f62304ab3438a90a43919310771dfa3c86ddb900a68a6999a06224cee3b9"
+  },
+  {
+    "path": "results/otsu_metrics/compare_panel.png",
+    "size": 648429,
+    "sha256": "86356a0d31274a8975da454302491571123b56d78718d2b8b03e6a5f75d98a7a"
+  },
+  {
+    "path": "results/otsu_metrics/metrics.csv",
+    "size": 98,
+    "sha256": "bdb748efd44f3bc4e909fe3b43030edaddb58f604976c950be5370a29fea8b32"
+  },
+  {
+    "path": "results/otsu_metrics/metrics_table.png",
+    "size": 38069,
+    "sha256": "16731ef4a681f78f1b8a45786f54045969a701e8bebdf3d950ee1d8b3bfe55b5"
+  },
+  {
+    "path": "results/otsu_metrics/xor_map.png",
+    "size": 319285,
+    "sha256": "7658c9d7e7b75b2e50ecfa51e6167dbd25c0b8b92f0fff00c12518f7384bb816"
+  },
+  {
+    "path": "results/slides/he_summary.png",
+    "size": 1930574,
+    "sha256": "80855c8e919873063831d145b0872524d4ace186dd640fe1b0338a28a293608f"
+  },
+  {
+    "path": "results/slides/otsu_summary.png",
+    "size": 1934159,
+    "sha256": "d04f6faf934751b8a8a6b18d833a47ad5c3fe02853624ee221ce9abb7716b94c"
+  }
+]

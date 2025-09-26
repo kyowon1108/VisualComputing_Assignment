@@ -1,0 +1,158 @@
+{
+  "input": "images/he_dark_indoor.jpg",
+  "methods": {
+    "RGB-HE": {
+      "command": "python run_he.py images/he_dark_indoor.jpg --space rgb --he-mode global",
+      "output": "results/he_rgb/result_rgb_global.png"
+    },
+    "Y-HE": {
+      "command": "python run_he.py images/he_dark_indoor.jpg --space yuv --he-mode global",
+      "output": "results/he_yuv/result_yuv_global.png"
+    },
+    "CLAHE": {
+      "command": "python run_he.py images/he_dark_indoor.jpg --space yuv --he-mode clahe --tile 8 8 --clip 2.5",
+      "output": "results/he_clahe/result_yuv_clahe.png"
+    }
+  },
+  "roi_selection": {
+    "darkest": {
+      "coords": {
+        "x": 432,
+        "y": 96,
+        "w": 96,
+        "h": 96,
+        "brightness": 0.3940972222222222
+      },
+      "criteria": "Lowest mean brightness"
+    },
+    "brightest": {
+      "coords": {
+        "x": 48,
+        "y": 240,
+        "w": 96,
+        "h": 96,
+        "brightness": 121.73600260416667
+      },
+      "criteria": "Highest mean brightness"
+    },
+    "highest_gradient": {
+      "coords": {
+        "x": 288,
+        "y": 336,
+        "w": 96,
+        "h": 96,
+        "gradient": 171.66635395617635
+      },
+      "criteria": "Highest edge gradient"
+    }
+  },
+  "metrics": {
+    "original": {
+      "darkest": {
+        "mean": 0.39,
+        "std": 0.88,
+        "rms_contrast": 0.88,
+        "edge_strength": 0.42
+      },
+      "brightest": {
+        "mean": 121.74,
+        "std": 40.51,
+        "rms_contrast": 40.51,
+        "edge_strength": 90.48
+      },
+      "highest_gradient": {
+        "mean": 92.78,
+        "std": 59.73,
+        "rms_contrast": 59.73,
+        "edge_strength": 171.67
+      }
+    },
+    "rgb_he": {
+      "darkest": {
+        "mean": 24.77,
+        "std": 15.92,
+        "rms_contrast": 15.92,
+        "edge_strength": 7.71
+      },
+      "brightest": {
+        "mean": 234.81,
+        "std": 20.94,
+        "rms_contrast": 20.94,
+        "edge_strength": 33.62
+      },
+      "highest_gradient": {
+        "mean": 209.6,
+        "std": 49.34,
+        "rms_contrast": 49.34,
+        "edge_strength": 148.67
+      }
+    },
+    "y_he": {
+      "darkest": {
+        "mean": 20.86,
+        "std": 16.6,
+        "rms_contrast": 16.6,
+        "edge_strength": 7.34
+      },
+      "brightest": {
+        "mean": 233.86,
+        "std": 18.33,
+        "rms_contrast": 18.33,
+        "edge_strength": 28.68
+      },
+      "highest_gradient": {
+        "mean": 208.45,
+        "std": 41.87,
+        "rms_contrast": 41.87,
+        "edge_strength": 128.32
+      }
+    },
+    "clahe": {
+      "darkest": {
+        "mean": 4.38,
+        "std": 2.98,
+        "rms_contrast": 2.98,
+        "edge_strength": 1.49
+      },
+      "brightest": {
+        "mean": 154.94,
+        "std": 50.33,
+        "rms_contrast": 50.33,
+        "edge_strength": 113.23
+      },
+      "highest_gradient": {
+        "mean": 126.87,
+        "std": 70.93,
+        "rms_contrast": 70.93,
+        "edge_strength": 214.83
+      }
+    }
+  },
+  "improvements": {
+    "RGB-HE": {
+      "darkest": {
+        "brightness_increase": 24.38,
+        "contrast_change": 15.04
+      },
+      "overall": "Increases brightness but may affect color balance"
+    },
+    "Y-HE": {
+      "darkest": {
+        "brightness_increase": 20.47,
+        "contrast_change": 15.72
+      },
+      "overall": "Preserves color while improving luminance"
+    },
+    "CLAHE": {
+      "darkest": {
+        "brightness_increase": 3.99,
+        "contrast_change": 2.1
+      },
+      "overall": "Local adaptive enhancement with controlled contrast"
+    }
+  },
+  "visualizations": {
+    "comparison_sheet": "results/he_analysis/comparison_sheet.png",
+    "histogram_cdf": "results/he_analysis/histogram_cdf.png"
+  }
+}

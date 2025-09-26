@@ -1,0 +1,1 @@
+{'task': 'capture_audit', 'artifacts': ['docs/capture_metadata.csv', 'docs/capture_metadata.md', 'images_640x480/'], 'count_images': 6}

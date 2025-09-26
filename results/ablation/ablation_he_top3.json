@@ -1,0 +1,23 @@
+[
+  {
+    "space": "yuv",
+    "mode": "clahe",
+    "clip": 2.5,
+    "tile": "8x8",
+    "ssim": 0.66
+  },
+  {
+    "space": "yuv",
+    "mode": "clahe",
+    "clip": 3.0,
+    "tile": "6x6",
+    "ssim": 0.64
+  },
+  {
+    "space": "yuv",
+    "mode": "global",
+    "clip": "-",
+    "tile": "-",
+    "ssim": 0.42
+  }
+]

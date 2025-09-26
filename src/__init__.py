@@ -26,6 +26,8 @@ __all__ = [
 
     # otsu.py
     'global_otsu_thresholding', 'local_otsu_block_based',
-    'local_otsu_sliding_window', 'compare_otsu_methods',
-    'calculate_otsu_threshold', 'apply_threshold'
+    'local_otsu_sliding_window', 'local_otsu_adaptive_block',
+    'local_otsu_adaptive_sliding', 'local_otsu_block_opencv',
+    'local_otsu_sliding_opencv', 'local_otsu_improved_boundary',
+    'compare_otsu_methods', 'calculate_otsu_threshold', 'apply_threshold'
 ]
