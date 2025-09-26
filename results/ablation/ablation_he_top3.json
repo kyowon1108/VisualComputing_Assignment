@@ -1,26 +1,23 @@
 [
   {
-    "tile": [
-      8,
-      8
-    ],
-    "clip": 3.0,
-    "score": 2.58
-  },
-  {
-    "tile": [
-      16,
-      16
-    ],
-    "clip": 3.0,
-    "score": 2.58
-  },
-  {
-    "tile": [
-      8,
-      8
-    ],
+    "space": "yuv",
+    "mode": "clahe",
     "clip": 2.5,
-    "score": 2.38
+    "tile": "8x8",
+    "ssim": 0.66
+  },
+  {
+    "space": "yuv",
+    "mode": "clahe",
+    "clip": 3.0,
+    "tile": "6x6",
+    "ssim": 0.64
+  },
+  {
+    "space": "yuv",
+    "mode": "global",
+    "clip": "-",
+    "tile": "-",
+    "ssim": 0.42
   }
 ]
